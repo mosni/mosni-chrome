@@ -1,0 +1,8 @@
+// A live inline-feedback line (e.g. a passkey ceremony result). Reserves its line height so
+// content doesn't jump when a message appears.
+.status {
+  min-height: 1.25em;
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--mosni-purple-pale);
+}

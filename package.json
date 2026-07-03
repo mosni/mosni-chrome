@@ -1,0 +1,17 @@
+{
+  "name": "mosni-chrome",
+  "version": "0.0.0",
+  "private": true,
+  "description": "mosnicat — the shared visual chrome / design system for the mosni stack",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "verify": "tsc --noEmit && node scripts/build.mjs && node scripts/check-shape.mjs && node scripts/smoke.mjs && prettier --check ."
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1",
+    "jsdom": "^29.1.1",
+    "prettier": "^3.6.2",
+    "sass": "^1.101.0",
+    "typescript": "^6.0.3"
+  }
+}

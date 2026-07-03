@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "target": "es2020",
+    "lib": ["dom", "es2020"],
+    "moduleResolution": "bundler",
+    "skipLibCheck": true
+  },
+  "include": ["src/js/**/*.ts"]
+}

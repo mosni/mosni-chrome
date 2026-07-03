@@ -1,0 +1,53 @@
+// A centered, responsive card: the default container for a single-purpose page (sign-in, a short
+// form, a brief message). Narrow on desktop, full-bleed-safe on phones.
+.panel {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 24rem;
+  margin: 2rem auto;
+  padding: 1.5rem 1.75rem;
+  background: var(--mosni-surface);
+  border: 2px solid var(--mosni-purple-strong);
+  border-radius: 10px;
+}
+
+@media (max-width: 480px) {
+  .panel {
+    width: auto;
+    margin: 1rem;
+    padding: 1.25rem;
+  }
+}
+
+.panel h1 {
+  margin: 0 0 1rem;
+  font-family: "Staatliches", sans-serif;
+  font-weight: normal;
+  font-size: 1.6rem;
+  color: var(--mosni-white);
+}
+
+.panel p {
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+// Panel-scoped form controls: opt into a .panel and inputs look right with no per-element classes.
+.panel input[type="text"],
+.panel input[type="password"],
+.panel input[type="email"] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  margin-bottom: 1rem;
+  font: inherit;
+  color: var(--mosni-white);
+  background: var(--mosni-surface-input);
+  border: 1px solid var(--mosni-border-muted);
+  border-radius: 6px;
+}
+
+.panel input:focus {
+  outline: none;
+  border-color: var(--mosni-purple);
+}

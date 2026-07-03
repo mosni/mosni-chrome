@@ -1,0 +1,96 @@
+// The header + content + menu grid family (kept per issue 0001-c: PROMOTE, not pruned — it has no
+// current real consumer but is the 0002 migration path for the legacy mosni.dev sites).
+.brand {
+  margin: 0;
+  padding-top: 0.2rem;
+  padding-left: 1rem;
+  font-size: 32px;
+  font-family: "Staatliches", cursive;
+}
+
+.header {
+  background: var(--mosni-surface);
+  border-bottom: 2px solid var(--mosni-purple-strong);
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.5rem 0 0;
+  height: var(--header-height);
+}
+
+.little-link {
+  margin-left: auto;
+  margin-right: 0.5rem;
+  font-size: 0.75rem;
+}
+
+a.active > .icon {
+  color: var(--mosni-black);
+  background-color: var(--mosni-white);
+}
+
+.content {
+  display: flex;
+  flex-flow: row;
+  width: 1200px;
+  max-width: none;
+  gap: 2rem;
+  padding-bottom: 0;
+}
+
+.menu-content {
+  display: flex;
+  height: calc(100vh - var(--header-height) - 2px);
+  align-items: flex-start;
+}
+
+.menu {
+  flex-basis: 300px;
+  min-width: 300px;
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  border-right: 2px solid var(--mosni-purple);
+  padding: 0;
+  max-height: none;
+  min-height: 100%;
+  background-color: var(--mosni-surface);
+}
+
+.menu-entry {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+}
+
+.menu-entry:hover {
+  background-color: var(--mosni-surface-hover);
+  color: var(--mosni-purple-pale);
+}
+
+.menu-entry.selected {
+  color: var(--mosni-purple);
+  background-color: var(--mosni-surface-selected);
+}
+
+.menu-entry-title {
+  font-size: 1.5rem;
+}
+
+.menu-entry-subtitle {
+  font-size: 0.7rem;
+  color: var(--mosni-text-muted);
+}
+
+.text-container {
+  margin: 2rem;
+  background: var(--mosni-surface);
+  padding: 2rem;
+  border: 2px solid var(--mosni-purple);
+  border-radius: 8px;
+  max-width: 1100px;
+}

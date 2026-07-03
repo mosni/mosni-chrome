@@ -1,0 +1,39 @@
+body {
+  height: 100%;
+  width: 100%;
+  background-color: #444;
+}
+
+img.cat {
+  position: fixed;
+  bottom: 0;
+  left: 80vw;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 500ms;
+  filter: drop-shadow(2px 4px 6px black);
+  z-index: -1;
+}
+
+canvas {
+  position: fixed;
+}
+
+.bubble2 {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+
+  width: 0;
+  height: 40%;
+  padding: 70%;
+  background-color: rgb(51, 51, 51);
+
+  background-color: #996bef;
+  transform: translate(50%, 80%);
+
+  border-radius: 50%;
+  box-shadow: inset 0px 0px 20px 8px black;
+
+  z-index: -1;
+}

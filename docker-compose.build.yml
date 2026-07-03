@@ -1,0 +1,11 @@
+# One-shot builder for the static-build deploy pattern (infra docs/static-build-pattern.md).
+# `lib/deploy` runs: docker compose -f docker-compose.build.yml run --rm --build builder
+# The builder writes the finished site to ./dist (bind-mounted below) → host apps/mosni-chrome/dist.
+services:
+  builder:
+    build:
+      context: .
+      dockerfile: build.Dockerfile
+    volumes:
+      - ./dist:/out # builder copies the finished site here; this is the served dir on the host
+    # no ports, no restart policy — this is a one-shot `run --rm`, not a service

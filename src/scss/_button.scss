@@ -1,0 +1,60 @@
+// Panel-scoped buttons: opt into a .panel and buttons/.btn look right with no per-element classes.
+.panel button,
+.panel .btn {
+  display: inline-block;
+  box-sizing: border-box;
+  padding: 0.6rem 1.1rem;
+  font: inherit;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--mosni-white);
+  background: var(--mosni-purple);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color 120ms ease,
+    transform 60ms ease;
+}
+
+.panel button:hover,
+.panel .btn:hover {
+  background: var(--mosni-purple-light);
+  text-decoration: none;
+}
+
+// Pressed: a small nudge gives tactile feedback instead of a dead click.
+.panel button:active,
+.panel .btn:active {
+  background: var(--mosni-purple-dark);
+  transform: translateY(1px);
+}
+
+// Keyboard focus: a clean offset ring instead of the browser's default outline.
+.panel button:focus-visible,
+.panel .btn:focus-visible {
+  outline: 2px solid var(--mosni-purple-focus-ring);
+  outline-offset: 2px;
+}
+
+// Respect reduced-motion.
+@media (prefers-reduced-motion: reduce) {
+  .panel button,
+  .panel .btn {
+    transition: none;
+  }
+  .panel button:active,
+  .panel .btn:active {
+    transform: none;
+  }
+}
+
+// A primary call-to-action that fills the card width.
+.panel .btn-block,
+.panel button.btn-block {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}

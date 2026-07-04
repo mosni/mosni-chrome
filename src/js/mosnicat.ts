@@ -64,3 +64,5 @@
     mountBody();
   }
 })();
+
+import "./components/index";

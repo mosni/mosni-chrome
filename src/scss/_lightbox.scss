@@ -1,0 +1,110 @@
+// <mosni-lightbox> (guidelines §4.11 / API §4.11). The thumbnail is enhanced in place; the
+// overlay is a body-appended native <dialog> so it always renders in the top layer.
+@use "shared";
+
+.lightbox-thumb {
+  cursor: zoom-in;
+
+  &:hover {
+    outline: 2px solid var(--mosni-purple);
+    outline-offset: 2px;
+  }
+}
+
+dialog.lightbox {
+  padding: 0;
+  border: none;
+  background: transparent;
+  max-width: none;
+  max-height: none;
+
+  // Entry (180ms ease-out) / exit (120ms ease) via @starting-style so no JS ever animates
+  // anything (motion is CSS-only, guidelines §2.5). The used transition duration on close is the
+  // after-change (base, non-[open]) style, giving the 180ms-in / 120ms-out asymmetry for free.
+  opacity: 0;
+  transform: scale(0.97);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease,
+    overlay 120ms allow-discrete,
+    display 120ms allow-discrete;
+
+  &[open] {
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      opacity 180ms ease-out,
+      transform 180ms ease-out,
+      overlay 180ms allow-discrete,
+      display 180ms allow-discrete;
+
+    @starting-style {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+
+  &::backdrop {
+    background: var(--mosni-overlay-heavy);
+    opacity: 0;
+    transition:
+      opacity 120ms ease,
+      overlay 120ms allow-discrete,
+      display 120ms allow-discrete;
+  }
+
+  &[open]::backdrop {
+    opacity: 1;
+    transition:
+      opacity 180ms ease-out,
+      overlay 180ms allow-discrete,
+      display 180ms allow-discrete;
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  img {
+    display: block;
+    max-width: 92vw;
+    max-height: 86vh;
+  }
+
+  .lightbox-caption {
+    margin-top: 0.75rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--mosni-text-soft);
+  }
+
+  .lightbox-close {
+    @include shared.icon-button;
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    // Light variant (guidelines §2.8): the default muted-grey icon-button is illegible on the
+    // heavy backdrop.
+    color: rgb(255 255 255 / 0.8);
+
+    &:hover {
+      color: var(--mosni-white);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transform: none;
+    transition:
+      opacity 120ms ease,
+      overlay 120ms allow-discrete,
+      display 120ms allow-discrete;
+
+    &[open] {
+      transform: none;
+      transition:
+        opacity 120ms ease,
+        overlay 120ms allow-discrete,
+        display 120ms allow-discrete;
+    }
+  }
+}

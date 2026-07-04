@@ -6,3 +6,11 @@
   font-size: 0.9rem;
   color: var(--mosni-purple-pale);
 }
+
+.status.success {
+  color: var(--mosni-success);
+}
+
+.status.error {
+  color: var(--mosni-error);
+}

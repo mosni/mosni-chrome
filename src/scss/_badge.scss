@@ -1,0 +1,49 @@
+// One shared pill shape for .badge / .tag (guidelines §5.3): outlined chips, never filled — a
+// fill at the exordium wheel's L75% would glow on the #444 body.
+.badge,
+.tag {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin-inline: 0.15rem;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--mosni-text-soft);
+  background: transparent;
+  border: 1px solid var(--mosni-border-muted);
+  border-radius: 999px;
+}
+
+.badge.primary,
+.tag.primary {
+  color: var(--mosni-purple-pale);
+  border-color: var(--mosni-purple-pale);
+}
+
+.badge.success,
+.tag.success {
+  color: var(--mosni-success);
+  border-color: var(--mosni-success);
+}
+
+.badge.error,
+.tag.error {
+  color: var(--mosni-error);
+  border-color: var(--mosni-error);
+}
+
+// Exordium-wheel literals (S 60% / L 75%): no --mosni-* token exists for cyan or indigo, so these
+// two hues are intentional hex/hsl literals per the design guidelines (§2.1/§5.3), not violations.
+.badge.cyan,
+.tag.cyan {
+  color: #99e6e6;
+  border-color: #99e6e6;
+}
+
+.badge.indigo,
+.tag.indigo {
+  color: hsl(255 60% 75%);
+  border-color: hsl(255 60% 75%);
+}

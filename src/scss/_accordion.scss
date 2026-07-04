@@ -1,0 +1,71 @@
+// <mosni-accordion> (guidelines §4.13 / API §4.13). Scoped to `mosni-accordion details/summary` —
+// the sanctioned opt-in-via-tag scope (D-2a-safe) — so the flat divided-list styling applies even
+// before JS upgrade (best no-JS component in the catalogue: native <details>/<summary>).
+@use "shared";
+
+mosni-accordion {
+  display: block;
+
+  // Padding lives on `details` itself (not a content wrapper) so it works whether the author
+  // wraps their content or writes it as raw text after </summary>; zeroed while closed so the
+  // collapsed row doesn't carry a phantom gap below the border. `summary` cancels the inline
+  // inset with a negative margin and re-applies its own padding, per the classic details/summary
+  // full-bleed-row technique.
+  details {
+    padding: 0 0.25rem 1rem;
+    color: var(--mosni-text-soft);
+    border-bottom: 1px solid var(--mosni-divider);
+
+    &:first-child {
+      border-top: 1px solid var(--mosni-divider);
+    }
+
+    &:not([open]) {
+      padding-bottom: 0;
+    }
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 -0.25rem;
+    padding: 0.85rem 0.25rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--mosni-white);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    @include shared.focus-ring;
+
+    &:hover {
+      color: var(--mosni-purple-pale);
+
+      .accordion-chevron {
+        color: var(--mosni-white);
+      }
+    }
+  }
+
+  .accordion-chevron {
+    flex-shrink: 0;
+    margin-left: auto;
+    color: var(--mosni-text-muted);
+    transition: transform 120ms ease;
+  }
+
+  details[open] .accordion-chevron {
+    transform: rotate(180deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .accordion-chevron {
+      transition: none;
+    }
+  }
+}

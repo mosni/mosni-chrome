@@ -1,0 +1,94 @@
+// Shared compile-time structure for the component layer (0002). Never tokens — see _tokens.scss
+// (D-7). This partial emits no CSS of its own; it is @use'd by partials that @include its mixins.
+
+$bp-narrow: 900px;
+$bp-phone: 480px;
+
+$z-header: 10;
+$z-tooltip: 60;
+$z-toast: 70;
+
+// The input chrome shared by every text-like control, factored out of .panel's original rules
+// (guidelines §5.6) so .field can reuse it outside a .panel.
+@mixin control-chrome {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  font: inherit;
+  color: var(--mosni-white);
+  background: var(--mosni-surface-input);
+  border: 1px solid var(--mosni-border-muted);
+  border-radius: 6px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--mosni-purple);
+  }
+}
+
+@mixin focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--mosni-purple-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+// Font styles only (guidelines §2.2) — margins stay per-context.
+// G1/D-25: H1-H4 are purple by default library-wide (agreed with the lead).
+@mixin heading-scale {
+  h1 {
+    font-family: "Staatliches", sans-serif;
+    font-weight: normal;
+    font-size: 1.6rem;
+    color: var(--mosni-purple);
+  }
+  h2 {
+    font-family: "Staatliches", sans-serif;
+    font-weight: normal;
+    font-size: 1.35rem;
+    color: var(--mosni-purple);
+  }
+  h3 {
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--mosni-purple);
+  }
+  h4 {
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--mosni-purple);
+  }
+}
+
+// The shared 32x32 icon-button pattern (guidelines §2.8): modal close, toast dismiss, code copy,
+// lightbox close (which overrides the idle colour for its heavy backdrop).
+@mixin icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--mosni-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+
+  &:hover {
+    color: var(--mosni-white);
+    background: var(--mosni-surface-hover);
+  }
+
+  @include focus-ring;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}

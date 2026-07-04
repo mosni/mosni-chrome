@@ -1,0 +1,23 @@
+// The reading surface for content pages (guidelines §5.7): generalises the old `.text-container`
+// (was 8px radius, margin: 2rem) into the canonical `.content-container`, with `.text-container`
+// kept as a working alias (no consumer breakage, API §5).
+@use "shared";
+
+.content-container,
+.text-container {
+  background: var(--mosni-surface);
+  border: 2px solid var(--mosni-purple);
+  border-radius: 10px;
+  padding: 2rem;
+  max-width: 1100px;
+  margin-inline: auto;
+
+  @include shared.heading-scale;
+}
+
+@media (max-width: shared.$bp-phone) {
+  .content-container,
+  .text-container {
+    padding: 1.25rem;
+  }
+}

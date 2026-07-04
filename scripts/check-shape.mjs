@@ -10,11 +10,16 @@ const distDir = path.join(rootDir, "dist");
 const REQUIRED_ASSETS = [
   "mosnicat.js",
   "cat.js",
+  "mosnicat-prism.js",
   "mosnicat.css",
   "mosnicat.png",
 ];
 const BARE_IMPORT_PATTERN = /\brequire\(\s*['"](?!\.)/;
 const BARE_ESM_IMPORT_PATTERN = /\bimport\s[^;]*?from\s*['"](?!\.)/;
+
+// The Prism-language registry marker (D-23): proves core never statically bundles Prism, and
+// that the lazy chunk actually contains the language data (not just an empty/failed import).
+const PRISM_MARKER = "languages.markup";
 
 async function assertDependencyFree(file) {
   const contents = await readFile(path.join(distDir, file), "utf8");
@@ -28,6 +33,24 @@ async function assertDependencyFree(file) {
   }
 }
 
+async function assertLeanCore() {
+  const core = await readFile(path.join(distDir, "mosnicat.js"), "utf8");
+  if (core.includes(PRISM_MARKER)) {
+    throw new Error(
+      `mosnicat.js: core bundle must not statically bundle Prism (found '${PRISM_MARKER}' — Prism's language registry marker; D-23 requires Prism to live only in the lazy mosnicat-prism.js chunk)`,
+    );
+  }
+  const prismChunk = await readFile(
+    path.join(distDir, "mosnicat-prism.js"),
+    "utf8",
+  );
+  if (!prismChunk.includes(PRISM_MARKER)) {
+    throw new Error(
+      `mosnicat-prism.js: expected Prism language data (missing '${PRISM_MARKER}') — the lazy chunk did not bundle Prism's languages`,
+    );
+  }
+}
+
 async function main() {
   const entries = await readdir(distDir);
   for (const file of REQUIRED_ASSETS) {
@@ -37,6 +60,8 @@ async function main() {
   }
   await assertDependencyFree("mosnicat.js");
   await assertDependencyFree("cat.js");
+  await assertDependencyFree("mosnicat-prism.js");
+  await assertLeanCore();
   console.log("check-shape: OK —", entries.join(", "));
 }
 

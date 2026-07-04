@@ -1,0 +1,56 @@
+// <mosni-tabs> / <mosni-tab> (guidelines §4.14 / API §4.14). No sliding-indicator animation
+// (deliberate) — the selected state is a static 2px bottom border, only colours transition.
+@use "shared";
+
+mosni-tab {
+  display: contents;
+}
+
+.tabs-bar {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--mosni-border-muted);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.tab {
+  flex-shrink: 0;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--mosni-text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease;
+
+  &:hover {
+    color: var(--mosni-white);
+  }
+
+  &[aria-selected="true"] {
+    color: var(--mosni-white);
+    border-bottom-color: var(--mosni-purple);
+  }
+
+  @include shared.focus-ring;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.tabs-panel {
+  padding-top: 1rem;
+}

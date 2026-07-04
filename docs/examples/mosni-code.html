@@ -1,0 +1,6 @@
+<mosni-code language="ts">
+  <pre>
+export const define = (tag: string, cls: CustomElementConstructor): void => {
+  if (!customElements.get(tag)) customElements.define(tag, cls);
+};</pre>
+</mosni-code>

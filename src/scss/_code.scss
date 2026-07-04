@@ -1,0 +1,105 @@
+// <mosni-code> (guidelines §4.12 / API §4.12) — M1 on .code, plus the inline-code utility rule.
+@use "shared";
+
+$mono-stack:
+  ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+
+.code {
+  display: block;
+  background: var(--mosni-surface-input);
+  border: 1px solid var(--mosni-border-muted);
+  border-radius: 6px;
+  overflow: hidden; // clip the header's border-bottom / code-area corners to the block radius
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--mosni-divider);
+  }
+
+  .code-lang {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    color: var(--mosni-text-muted);
+  }
+
+  .code-copy {
+    @include shared.icon-button;
+  }
+
+  pre {
+    margin: 0;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    tab-size: 2;
+    color: var(--mosni-text-soft);
+    font-family: $mono-stack;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  code {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+  }
+}
+
+// The token-mapped flat Prism theme (guidelines §4.12) — never a stock theme. Targets Prism's
+// standard token classes emitted inside .language-* code blocks. #909090 and #99e6e6 are the two
+// intentional literal exordium-wheel values called out by the spec (not in the token file).
+.code pre {
+  .token.comment,
+  .token.prolog,
+  .token.doctype,
+  .token.cdata {
+    color: #909090;
+    font-style: normal;
+  }
+
+  .token.keyword {
+    color: var(--mosni-purple-light);
+  }
+
+  .token.string,
+  .token.attr-value {
+    color: var(--mosni-success);
+  }
+
+  .token.number,
+  .token.constant,
+  .token.boolean {
+    color: var(--mosni-error);
+  }
+
+  .token.function {
+    color: var(--mosni-purple-pale);
+  }
+
+  .token.class-name,
+  .token.tag {
+    color: #99e6e6;
+  }
+
+  .token.operator,
+  .token.punctuation {
+    color: var(--mosni-text-muted);
+  }
+}
+
+// Inline code (scoped, NOT inside a .code block) — the one radius outside the 10/6/999 system
+// (guidelines §4.12): 4px is deliberate, em-scaled chrome on a text run, not a box.
+.prose :not(pre) > code,
+.content-container :not(pre) > code,
+.text-container :not(pre) > code {
+  background: var(--mosni-surface-input);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: $mono-stack;
+}

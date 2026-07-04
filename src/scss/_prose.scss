@@ -1,0 +1,59 @@
+// The article/markdown wrapper (guidelines §5.11) — the only place bare content elements get
+// restyled, and entering it is opt-in (D-2a holds).
+@use "shared";
+
+.prose {
+  max-width: 70ch;
+  line-height: 1.6;
+
+  @include shared.heading-scale;
+}
+
+.prose :is(h1, h2, h3) {
+  margin: 2em 0 0.6em;
+}
+
+.prose :is(h1, h2, h3):first-child {
+  margin-top: 0;
+}
+
+.prose p {
+  margin: 0 0 1em;
+}
+
+// Links inherit the base `a` styles — no override needed here.
+
+.prose ul,
+.prose ol {
+  padding-left: 1.5rem;
+}
+
+.prose img {
+  max-width: 100%;
+  border-radius: 6px;
+}
+
+// Matches .divider (duplicated rather than @extend'ed across partials — safest with @use/@forward
+// module boundaries in Dart Sass; @extend across separately-@use'd partials is unreliable here).
+.prose hr {
+  height: 0;
+  margin: 1.5rem 0;
+  border: none;
+  border-top: 1px solid var(--mosni-divider);
+}
+
+// Blockquote (guidelines §5.10), scoped to .prose and the content containers per "in .prose/
+// containers". Unit A owns _container.scss, but referencing its class names in a selector here is
+// fine — CSS selectors may reference any class regardless of which partial owns it.
+.prose blockquote,
+.content-container blockquote,
+.text-container blockquote {
+  margin: 1rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  color: var(--mosni-text-soft);
+  font-style: normal;
+  background: none;
+  border-left: 3px solid var(--mosni-purple);
+}
+
+// Inline code inside .prose is Unit D's _code.scss — not duplicated here.

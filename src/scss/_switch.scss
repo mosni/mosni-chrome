@@ -1,0 +1,95 @@
+// Enhance-or-generate boolean toggle (guidelines §4.7). The track/thumb are pure CSS, driven off
+// the (visually-hidden) inner checkbox's native :checked/:disabled state — no JS beyond keeping
+// the host attribute and the checkbox in sync.
+@use "shared";
+
+mosni-switch {
+  display: inline-block;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  // Padding bumps the clickable hit area to the 44x24px minimum even with no text label (the
+  // track alone is 36x20px) — guidelines §4.7.
+  padding: 2px 4px;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--mosni-white);
+  cursor: pointer;
+}
+
+.switch input {
+  // Visually hidden but still focusable/tabbable — NOT display:none. .switch-visual is its
+  // visible proxy.
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  opacity: 0;
+}
+
+.switch-visual {
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  width: 36px;
+  height: 20px;
+  background: var(--mosni-surface-input);
+  border: 1px solid var(--mosni-border-muted);
+  border-radius: 999px;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--mosni-white);
+  border-radius: 999px;
+  transition: transform 120ms ease;
+}
+
+.switch input:checked + .switch-visual {
+  background: var(--mosni-purple);
+  border-color: var(--mosni-purple);
+}
+
+.switch input:checked + .switch-visual .switch-thumb {
+  transform: translateX(16px);
+}
+
+.switch:hover .switch-visual {
+  border-color: #8a8a8a;
+}
+
+.switch:hover input:checked + .switch-visual {
+  background: var(--mosni-purple-light);
+  border-color: var(--mosni-purple-light);
+}
+
+.switch input:focus-visible + .switch-visual {
+  outline: 2px solid var(--mosni-purple-focus-ring);
+  outline-offset: 2px;
+}
+
+.switch:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch-visual,
+  .switch-thumb {
+    transition: none;
+  }
+}

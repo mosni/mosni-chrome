@@ -8,11 +8,20 @@ import { generateDocs } from "./docs.mjs";
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const distDir = path.join(rootDir, "dist");
 
+// Third entry (D-23): the lazy Prism chunk, built with the exact same options as the two core
+// entries but from a different relative source path — see implementation-waves.md §1.5. Core
+// mosnicat.js never references this file; code.ts loads it via runtime script injection.
+const JS_ENTRIES = [
+  ["mosnicat", "src/js/mosnicat.ts"],
+  ["cat", "src/js/cat.ts"],
+  ["mosnicat-prism", "src/js/prism/index.ts"],
+];
+
 async function buildJs() {
-  for (const entry of ["mosnicat", "cat"]) {
+  for (const [name, srcPath] of JS_ENTRIES) {
     await esbuildBuild({
-      entryPoints: [path.join(rootDir, "src/js", `${entry}.ts`)],
-      outfile: path.join(distDir, `${entry}.js`),
+      entryPoints: [path.join(rootDir, srcPath)],
+      outfile: path.join(distDir, `${name}.js`),
       bundle: true,
       minify: true,
       format: "iife",

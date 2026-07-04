@@ -1,4 +1,6 @@
 // Base theme: page body, link colours, and the .purple accent utility.
+@use "shared";
+
 body {
   padding: 0;
   margin: 0;
@@ -12,6 +14,14 @@ body {
 a {
   color: var(--mosni-purple-light);
   text-decoration: none;
+
+  // Mouse/pointer focus: suppress the browser's default blue outline flash. Keyboard users still
+  // get the purple :focus-visible ring below.
+  &:focus {
+    outline: none;
+  }
+
+  @include shared.focus-ring;
 }
 a:hover,
 a:focus {
@@ -21,4 +31,21 @@ a:focus {
 
 .purple {
   color: var(--mosni-purple);
+}
+
+// G1/D-25: H1-H4 default to purple library-wide, including bare un-classed headings that don't go
+// through the heading-scale mixin (e.g. a hand-authored page's own <h1>).
+h1,
+h2,
+h3,
+h4 {
+  color: var(--mosni-purple);
+}
+
+// Scoped FOUC guard (A2): only these two tags are content-less until upgrade AND would show a
+// bare empty inline box mid-parse. Never a blanket mosni-* rule — that would hide authored
+// content on enhance-role components with JS off.
+mosni-menu-item:not(:defined),
+mosni-toast:not(:defined) {
+  display: none;
 }

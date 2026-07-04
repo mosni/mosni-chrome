@@ -31,9 +31,17 @@
   transform: translateY(1px);
 }
 
+// Mouse/pointer focus: suppress the browser's default blue outline flash for every button/.btn,
+// not just those inside a .panel. The :active nudge above is enough click feedback; keyboard
+// users still get the purple :focus-visible ring below.
+button:focus,
+.btn:focus {
+  outline: none;
+}
+
 // Keyboard focus: a clean offset ring instead of the browser's default outline.
-.panel button:focus-visible,
-.panel .btn:focus-visible {
+button:focus-visible,
+.btn:focus-visible {
   outline: 2px solid var(--mosni-purple-focus-ring);
   outline-offset: 2px;
 }

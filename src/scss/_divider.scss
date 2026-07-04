@@ -1,0 +1,8 @@
+// Works on both <hr class="divider"> and a bare <div class="divider"> (guidelines §5.8). height:0
+// is defensive against browsers that give <hr> its default thickness via border-width.
+.divider {
+  height: 0;
+  margin: 1.5rem 0;
+  border: none;
+  border-top: 1px solid var(--mosni-divider);
+}

@@ -1,0 +1,119 @@
+// Native <dialog> panel (guidelines §4.8): the top layer needs no z-index (§2.4).
+@use "shared";
+
+// M2: the host contributes no box of its own — the generated <dialog class="modal"> is the real
+// element.
+mosni-modal {
+  display: contents;
+}
+
+.modal {
+  box-sizing: border-box;
+  position: relative;
+  margin: auto;
+  width: min(28rem, calc(100vw - 2rem));
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 1.5rem 1.75rem;
+  background: var(--mosni-surface);
+  border: 2px solid var(--mosni-purple);
+  border-radius: 10px;
+  box-shadow: var(--mosni-shadow-floating);
+
+  // Entry/exit transition for the native top layer. Browsers without @starting-style support
+  // just show/hide instantly (open/close itself is driven by showModal()/close() in JS, never by
+  // this CSS) — correctness of the dialog opening and closing never depends on this rule.
+  opacity: 0;
+  transform: scale(0.98);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease,
+    overlay 120ms ease allow-discrete,
+    display 120ms ease allow-discrete;
+
+  &[open] {
+    opacity: 1;
+    transform: scale(1);
+    transition-duration: 180ms;
+    transition-timing-function: ease-out;
+  }
+
+  @starting-style {
+    &[open] {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+  }
+
+  &::backdrop {
+    background: var(--mosni-overlay);
+    opacity: 0;
+    transition:
+      opacity 120ms ease,
+      overlay 120ms ease allow-discrete,
+      display 120ms ease allow-discrete;
+  }
+
+  &[open]::backdrop {
+    opacity: 1;
+    transition-duration: 180ms;
+    transition-timing-function: ease-out;
+  }
+
+  @starting-style {
+    &[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transform: none;
+    transition:
+      opacity 120ms ease,
+      overlay 120ms ease allow-discrete,
+      display 120ms ease allow-discrete;
+
+    &[open] {
+      transform: none;
+      transition-duration: 120ms;
+    }
+
+    &::backdrop {
+      transition:
+        opacity 120ms ease,
+        overlay 120ms ease allow-discrete,
+        display 120ms ease allow-discrete;
+    }
+  }
+}
+
+.modal-close {
+  @include shared.icon-button;
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+.modal-heading {
+  margin: 0 0 1rem;
+  font-family: "Staatliches", sans-serif;
+  font-weight: normal;
+  font-size: 1.6rem;
+}
+
+.modal-body p {
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+
+  // No slot="footer" content was supplied — don't reserve the margin-top for an empty row.
+  &:empty {
+    display: none;
+  }
+}

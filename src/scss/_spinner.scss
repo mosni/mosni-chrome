@@ -1,0 +1,23 @@
+// CSS-only busy indicator (guidelines §5.4). Em-scalable via font-size on the element. Exempt from
+// the standard reduced-motion kill — spinning IS the status information — but still slows down.
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  border: 2px solid rgb(255 255 255 / 0.2);
+  border-top-color: var(--mosni-purple);
+  border-radius: 999px;
+  animation: rotate 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1.6s;
+  }
+}

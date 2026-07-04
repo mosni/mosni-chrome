@@ -1,0 +1,36 @@
+// The page footer (guidelines §4.5) — distinct from the header's tagline slot. No sticky/fixed
+// positioning: inside `<mosni-layout>` it sits at the bottom of the main region (see _layout.scss
+// `.layout-main > .footer`); standalone it's a normal block.
+@use "shared";
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: var(--mosni-surface);
+  border-top: 2px solid var(--mosni-purple);
+  padding: 1.25rem 1.5rem;
+  font-size: 0.75rem;
+  color: var(--mosni-text-muted);
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: shared.$bp-phone) {
+  .footer {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

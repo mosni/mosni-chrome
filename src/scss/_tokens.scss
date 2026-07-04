@@ -11,16 +11,27 @@
   --mosni-purple-dark: #8a5be0;
   --mosni-purple-focus-ring: #d9c8ff;
 
-  // Surfaces
-  --mosni-surface: rgb(51, 51, 51);
-  --mosni-surface-body: #444;
-  --mosni-surface-input: #2b2b2b;
-  --mosni-surface-hover: rgb(80, 80, 80);
-  --mosni-surface-selected: rgb(60, 60, 60);
+  // Surfaces (D-21 ramp: 5 functional roles, hex-normalised, widened steps)
+  --mosni-surface: #303030;
+  --mosni-surface-body: #444444;
+  --mosni-surface-input: #262626;
+  --mosni-surface-hover: #545454;
+  --mosni-surface-selected: #3a3a3a;
 
   // Text & borders
   --mosni-text-muted: #aaa;
+  --mosni-text-soft: #ddd;
   --mosni-border-muted: #6b6b6b;
+  --mosni-divider: #555;
   --mosni-white: #fff;
   --mosni-black: #000;
+
+  // Semantic status colours (D-22)
+  --mosni-success: #99e6b5;
+  --mosni-error: #e699bf;
+
+  // Floating-layer chrome
+  --mosni-overlay: rgb(0 0 0 / 0.55);
+  --mosni-overlay-heavy: rgb(0 0 0 / 0.8);
+  --mosni-shadow-floating: 0 8px 24px rgb(0 0 0 / 0.35);
 }

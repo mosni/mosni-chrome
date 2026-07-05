@@ -144,9 +144,7 @@ const PAIRS = [
       { id: "panel-input", label: "With inputs" },
       { id: "text-container", label: "Text container" },
     ],
-    note: `<code>.text-container</code> is kept as a working alias of <code>.content-container</code>
-      &mdash; the chrome-light reading surface for content pages (guidelines &sect;5.7), which is
-      why it shares <code>.panel</code>'s card look.`,
+    note: `<code>.text-container</code> is the same as <code>.content-container</code>. Kept around for backwards compatibility reasons.`,
   },
   {
     title: "Button",
@@ -183,15 +181,12 @@ ${tabPanels}
 }
 
 const COMPONENTS_INTRO = `    <section class="doc-example-intro">
-      <h2>Components</h2>
+      <h1>Components</h1>
       <p>
-        Every surface below ships two first-class authoring paths that render identically: drop in
-        the custom element tag for terse markup, or hand-write the plain HTML/class version for
-        full control and the strongest no-JS story.
+        Either use these as components, <mosni-comp> custom element, or as plain html with classes
       </p>
       <p>
-        The demos below show both paths side by side where it matters, followed by the
-        attribute/slot/event contract for each component.
+        Examples include tabs for both versions when available.
       </p>
     </section>`;
 
@@ -256,7 +251,7 @@ export async function generateDocs({ distDir }) {
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>mosnicat</title>
+    <title>Hannah's design library</title>
     <style>
       .docs-content {
         max-width: 60rem;
@@ -299,12 +294,12 @@ export async function generateDocs({ distDir }) {
   </head>
   <body>
     <mosni-layout>
-      <mosni-header slot="header" brand="MOSNI'S" accent="CAT" href="https://mosni.dev" tagline="the mosnicat design system"></mosni-header>
+      <mosni-header slot="header" brand="MOSNI'S" accent="DESIGN KIT" href="https://mosni.dev" tagline="hannah's design system"></mosni-header>
       <mosni-menu slot="menu" label="Sections">
         ${navItemsHtml}
       </mosni-menu>
       <div class="docs-content">
-        <h1>mosnicat</h1>
+        <h1>Hannah's design library</h1>
         <p>
           A drop-in design system - no framework, no build step. Add one tag and every class and
           <code>&lt;mosni-*&gt;</code> element below just works:
@@ -312,7 +307,7 @@ export async function generateDocs({ distDir }) {
         <mosni-code language="html"><pre>&lt;script src="https://ui.mosni.dev/mosnicat.js"&gt;&lt;/script&gt;</pre></mosni-code>
 ${sections.join('\n        <hr class="divider" />\n')}
       </div>
-      <mosni-footer slot="footer">made with mosnicat<a slot="links" href="https://mosni.dev">mosni.dev</a></mosni-footer>
+      <mosni-footer slot="footer">made with love by <a slot="links" href="https://mosni.dev">mosni.dev</a></mosni-footer>
     </mosni-layout>
     <script src="mosnicat.js"></script>
   </body>

@@ -25,7 +25,7 @@ function titleFromFilename(filename) {
 }
 
 // Wave 2 (D-13 "Components" section): compile the side-effect-free components/meta.ts with
-// esbuild and pull the componentMeta array out of the compiled ESM via a data: URI import — this
+// esbuild and pull the componentMeta array out of the compiled ESM via a data: URI import - this
 // runs Node-side (no DOM/customElements), so meta.ts must stay side-effect-free (see its own
 // header comment).
 async function loadComponentMeta() {
@@ -51,6 +51,7 @@ function renderAttributeTable(meta) {
             <td><code>${escapeHtml(attr.name)}</code></td>
             <td>${escapeHtml(attr.type)}</td>
             <td>${attr.observed ? "yes" : "no"}</td>
+            <td><code>${escapeHtml(attr.default ?? "—")}</code></td>
             <td class="table-desc">${escapeHtml(attr.description)}</td>
           </tr>`,
     )
@@ -63,6 +64,7 @@ function renderAttributeTable(meta) {
             <th>Name</th>
             <th>Type</th>
             <th>Observed</th>
+            <th>Default</th>
             <th>Description</th>
           </tr>
         </thead>
@@ -113,7 +115,7 @@ function renderSection(filename, source, componentMetaByTag) {
   const id = filename.replace(/\.html$/, "");
   const title = titleFromFilename(filename);
   // Component fragments are named after their tag exactly (e.g. mosni-header.html -> tag
-  // mosni-header) — every non-component fragment (the original 10 + new utility fragments) has no
+  // mosni-header) - every non-component fragment (the original 10 + new utility fragments) has no
   // matching entry and renders exactly as before.
   const meta = componentMetaByTag.get(id);
   const metaTables = meta ? `\n${renderComponentMetaTables(meta)}` : "";
@@ -158,6 +160,13 @@ const PAIRS = [
       &mdash; the chrome-light reading surface for content pages (guidelines &sect;5.7), which is
       why it shares <code>.panel</code>'s card look.`,
   },
+  {
+    title: "Button",
+    tabs: [
+      { id: "btn", label: "Button" },
+      { id: "btn-block", label: "Full-width" },
+    ],
+  },
 ];
 
 function renderPairedSection(pair, sourceById, componentMetaByTag) {
@@ -188,14 +197,13 @@ ${tabPanels}
 const COMPONENTS_INTRO = `    <section class="doc-example-intro">
       <h2>Components</h2>
       <p>
-        Every surface below ships two first-class authoring paths that render pixel-identically
-        (D-17): drop in the custom element tag (<code>&lt;mosni-header&gt;</code>, …) for
-        attribute-driven terseness, or hand-write the plain HTML/class version
-        (<code>&lt;header class="header"&gt;</code>, …) for full control and the strongest no-JS
-        story — neither path is deprecated or secondary. Each section below is a live
-        <code>&lt;mosni-*&gt;</code> example (this page loads <code>mosnicat.js</code> at the end
-        of <code>&lt;body&gt;</code>, so the tag upgrades in-browser) followed by its
-        attribute/slot/event contract.
+        Every surface below ships two first-class authoring paths that render identically: drop in
+        the custom element tag for terse markup, or hand-write the plain HTML/class version for
+        full control and the strongest no-JS story.
+      </p>
+      <p>
+        The demos below show both paths side by side where it matters, followed by the
+        attribute/slot/event contract for each component.
       </p>
     </section>`;
 
@@ -249,8 +257,14 @@ export async function generateDocs({ distDir }) {
     <title>mosnicat</title>
     <link rel="stylesheet" href="mosnicat.css" />
     <style>
+      body {
+        padding-inline: 1rem;
+      }
       .doc-example {
-        margin: 2rem;
+        margin: 2rem 0;
+      }
+      .doc-example-intro {
+        margin-inline: 0;
       }
       .doc-example-demo {
         border: 1px dashed #666;
@@ -265,14 +279,33 @@ export async function generateDocs({ distDir }) {
       .table-desc {
         overflow-wrap: anywhere;
       }
+      .icon-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .icon-grid figure {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.35rem;
+        margin: 0;
+        font-size: 0.75rem;
+        color: var(--mosni-text-muted);
+      }
     </style>
   </head>
   <body>
     <h1>mosnicat</h1>
     <p>
-      Live examples and copy-paste snippets for every documented class in the drop-in stylesheet.
-      Each example is rendered from, and its snippet shown verbatim from, the same fragment in
-      <code>docs/examples/</code> &mdash; the two cannot drift apart.
+      A drop-in design system - no framework, no build step. Add two tags and every class and
+      <code>&lt;mosni-*&gt;</code> element below just works:
+    </p>
+    <mosni-code language="html"><pre>&lt;link rel="stylesheet" href="https://ui.mosni.dev/mosnicat.css"&gt;
+&lt;script src="https://ui.mosni.dev/mosnicat.js" defer&gt;&lt;/script&gt;</pre></mosni-code>
+    <p>
+      Every example below is rendered from, and shows its snippet verbatim from, the same fragment
+      &mdash; the two can't drift apart.
     </p>
 ${sections.join('\n    <hr class="divider" />\n')}
     <script src="mosnicat.js"></script>

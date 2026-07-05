@@ -21,7 +21,8 @@ const glyphs = {
 export type IconName = keyof typeof glyphs;
 
 /** D-24 whitelist (guidelines §2.8): currentColor, stroke-width 2, 24×24 viewBox,
- *  sized by context (20px icon-buttons, 16px inline). aria-hidden — icons are decorative. */
+ *  sized by context (20px icon-buttons, 16px inline). aria-hidden - icons are decorative.
+ *  Keep this list aligned with the docs/examples/icons.html whitelist section. */
 export const icon = (name: IconName, size: 16 | 20): SVGElement => {
   const el = createElement(glyphs[name]);
   el.setAttribute("width", String(size));

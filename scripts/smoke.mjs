@@ -74,20 +74,21 @@ async function testBootstrapInvariants() {
       `idempotency guard failed: expected exactly 1 img#cat-image after two includes, found ${catImages.length}`,
     );
   }
-  const catScripts = document.querySelectorAll(
-    'script[src="https://mosni.dev/cat.js"]',
-  );
-  if (catScripts.length !== 1) {
+  const eyeCanvases = document.querySelectorAll("canvas.eye");
+  if (eyeCanvases.length !== 2) {
     fail(
-      `idempotency guard failed: expected exactly 1 cat.js script tag after two includes, found ${catScripts.length}`,
+      `idempotency guard failed: expected exactly 2 canvas.eye after two includes, found ${eyeCanvases.length}`,
     );
   }
-  const stylesheetLinks = document.querySelectorAll(
-    'link[href="https://mosni.dev/mosnicat.css"]',
-  );
-  if (stylesheetLinks.length !== 1) {
+  const styleTags = document.querySelectorAll("style#mosni-styles");
+  if (styleTags.length !== 1) {
     fail(
-      `idempotency guard failed: expected exactly 1 mosnicat.css link after two includes, found ${stylesheetLinks.length}`,
+      `idempotency guard failed: expected exactly 1 style#mosni-styles after two includes, found ${styleTags.length}`,
+    );
+  }
+  if (!styleTags[0]?.textContent.includes("--mosni-purple")) {
+    fail(
+      "style#mosni-styles does not contain the bundled mosnicat CSS (missing --mosni-purple)",
     );
   }
 

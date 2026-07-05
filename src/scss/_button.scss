@@ -1,6 +1,7 @@
-// Panel-scoped buttons: opt into a .panel and buttons/.btn look right with no per-element classes.
-.panel button,
-.panel .btn {
+// Global buttons: plain <button> and .btn share the default purple CTA styling everywhere, while
+// component chrome buttons keep their own dedicated class selectors at equal-or-higher specificity.
+button,
+.btn {
   display: inline-block;
   box-sizing: border-box;
   padding: 0.6rem 1.1rem;
@@ -18,15 +19,15 @@
     transform 60ms ease;
 }
 
-.panel button:hover,
-.panel .btn:hover {
+button:hover,
+.btn:hover {
   background: var(--mosni-purple-light);
   text-decoration: none;
 }
 
 // Pressed: a small nudge gives tactile feedback instead of a dead click.
-.panel button:active,
-.panel .btn:active {
+button:active,
+.btn:active {
   background: var(--mosni-purple-dark);
   transform: translateY(1px);
 }
@@ -48,19 +49,20 @@ button:focus-visible,
 
 // Respect reduced-motion.
 @media (prefers-reduced-motion: reduce) {
-  .panel button,
-  .panel .btn {
+  button,
+  .btn {
     transition: none;
   }
-  .panel button:active,
-  .panel .btn:active {
+
+  button:active,
+  .btn:active {
     transform: none;
   }
 }
 
 // A primary call-to-action that fills the card width.
-.panel .btn-block,
-.panel button.btn-block {
+.btn-block,
+button.btn-block {
   display: block;
   width: 100%;
   margin-bottom: 0.75rem;

@@ -1,6 +1,6 @@
 import { build as esbuildBuild } from "esbuild";
 import * as sass from "sass";
-import { mkdir, rm, copyFile, writeFile } from "node:fs/promises";
+import { mkdir, rm, copyFile, writeFile, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { generateDocs } from "./docs.mjs";
@@ -13,11 +13,10 @@ const distDir = path.join(rootDir, "dist");
 // mosnicat.js never references this file; code.ts loads it via runtime script injection.
 const JS_ENTRIES = [
   ["mosnicat", "src/js/mosnicat.ts"],
-  ["cat", "src/js/cat.ts"],
   ["mosnicat-prism", "src/js/prism/index.ts"],
 ];
 
-async function buildJs() {
+async function buildJs({ css, png }) {
   for (const [name, srcPath] of JS_ENTRIES) {
     await esbuildBuild({
       entryPoints: [path.join(rootDir, srcPath)],
@@ -26,6 +25,10 @@ async function buildJs() {
       minify: true,
       format: "iife",
       target: "es2020",
+      define: {
+        __MOSNICAT_CSS__: JSON.stringify(css),
+        __MOSNICAT_PNG__: JSON.stringify(png),
+      },
     });
   }
 }
@@ -35,6 +38,12 @@ async function buildCss() {
     style: "compressed",
   });
   await writeFile(path.join(distDir, "mosnicat.css"), result.css);
+  return result.css;
+}
+
+async function pngDataUri() {
+  const bytes = await readFile(path.join(rootDir, "src/assets/mosnicat.png"));
+  return "data:image/png;base64," + bytes.toString("base64");
 }
 
 async function copyAssets() {
@@ -47,8 +56,9 @@ async function copyAssets() {
 async function main() {
   await rm(distDir, { recursive: true, force: true });
   await mkdir(distDir, { recursive: true });
-  await buildJs();
-  await buildCss();
+  const css = await buildCss();
+  const png = await pngDataUri();
+  await buildJs({ css, png });
   await copyAssets();
   await generateDocs({ rootDir, distDir });
   console.log("build: OK — dist/ written");

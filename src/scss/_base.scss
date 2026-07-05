@@ -1,6 +1,10 @@
 // Base theme: page body, link colours, and the .purple accent utility.
 @use "shared";
 
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   padding: 0;
   margin: 0;
@@ -43,7 +47,7 @@ h4 {
 }
 
 // Scoped FOUC guard (A2): only these two tags are content-less until upgrade AND would show a
-// bare empty inline box mid-parse. Never a blanket mosni-* rule — that would hide authored
+// bare empty inline box mid-parse. Never a blanket mosni-* rule - that would hide authored
 // content on enhance-role components with JS off.
 mosni-menu-item:not(:defined),
 mosni-toast:not(:defined) {

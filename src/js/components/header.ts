@@ -43,6 +43,7 @@ class MosniHeader extends MosniElement {
 
     const accent = this.getAttribute("accent");
     if (accent !== null) {
+      brand.append(" ");
       const span = document.createElement("span");
       span.className = "purple";
       span.textContent = accent;

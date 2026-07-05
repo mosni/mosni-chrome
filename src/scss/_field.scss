@@ -4,7 +4,7 @@
 @use "shared";
 
 .field {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .field-label {
@@ -20,7 +20,7 @@
   color: var(--mosni-purple);
 }
 
-// Text-like controls share the panel input chrome. Checkbox/radio are excluded — per guidelines
+// Text-like controls share the panel input chrome. Checkbox/radio are excluded - per guidelines
 // §5.6 they stay native + accent-color, not the padded box chrome.
 .field :is(input, textarea, select):not([type="checkbox"]):not([type="radio"]) {
   @include shared.control-chrome;
@@ -56,11 +56,12 @@
 .field-error {
   margin-top: 0.35rem;
   font-size: 0.75rem;
-  color: var(--mosni-error);
+  color: var(--mosni-error-strong);
 }
 
-// Error state: text + border only (guidelines §4.6) — no fills.
+// Error state: text + border only (guidelines §4.6) - no fills.
 .field.error
   :is(input, textarea, select):not([type="checkbox"]):not([type="radio"]) {
-  border-color: var(--mosni-error);
+  border-color: var(--mosni-error-strong);
+  border-width: 2px;
 }

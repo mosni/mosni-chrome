@@ -1,3 +1,8 @@
+declare const __MOSNICAT_CSS__: string;
+declare const __MOSNICAT_PNG__: string;
+
+import { initCat } from "./cat";
+
 (() => {
   if ((window as { __MOSNI_BOOTSTRAPPED__?: boolean }).__MOSNI_BOOTSTRAPPED__)
     return;
@@ -13,13 +18,12 @@
     }
   };
 
-  const injectScript = (src: string): void => {
-    if (!document.querySelector(`script[src="${src}"]`)) {
-      const script = document.createElement("script");
-      script.src = src;
-      script.defer = true;
-      document.body.appendChild(script);
-    }
+  const injectStyle = (): void => {
+    if (document.getElementById("mosni-styles")) return;
+    const style = document.createElement("style");
+    style.id = "mosni-styles";
+    style.textContent = __MOSNICAT_CSS__;
+    document.head.appendChild(style);
   };
 
   // Responsive out of the box: give the page a viewport meta if it forgot one, so a consumer never
@@ -35,7 +39,7 @@
 
   // --- head-safe work: document.head always exists while <head> is parsing, so this can run
   // immediately regardless of where the consumer put the <script> tag.
-  injectCSS("https://mosni.dev/mosnicat.css");
+  injectStyle();
   injectCSS("https://fonts.googleapis.com/css?family=Roboto|Staatliches");
   ensureViewport();
 
@@ -45,17 +49,16 @@
   favicon.href = "https://mosni.dev/images/icon.png";
   document.head.appendChild(favicon);
 
-  // --- body-dependent work: the cat image + cat.js append to document.body, which does NOT exist yet
+  // --- body-dependent work: the cat image appends to document.body, which does NOT exist yet
   // if mosnicat.js is included in <head> as a plain script. Defer until the DOM is ready so a naive
-  // <head> include can't throw (and cat.js still finds img#cat-image, which we append first).
+  // <head> include can't throw.
   const mountBody = (): void => {
     const catImg = document.createElement("img");
     catImg.className = "cat";
     catImg.id = "cat-image";
-    catImg.src = "https://mosni.dev/mosnicat.png";
+    catImg.src = __MOSNICAT_PNG__;
     document.body.appendChild(catImg);
-
-    injectScript("https://mosni.dev/cat.js");
+    initCat();
   };
 
   if (document.readyState === "loading") {

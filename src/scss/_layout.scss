@@ -1,4 +1,4 @@
-// The header + content + menu grid family (kept per issue 0001-c: PROMOTE, not pruned — it has no
+// The header + content + menu grid family (kept per issue 0001-c: PROMOTE, not pruned - it has no
 // current real consumer but is the 0002 migration path for the legacy mosni.dev sites).
 @use "shared";
 
@@ -8,6 +8,13 @@
   font-family: "Staatliches", sans-serif;
   letter-spacing: 0.01em;
   color: var(--mosni-white);
+}
+
+.header > a:has(> .brand),
+.header > a:has(> .brand):hover,
+.header > a:has(> .brand):focus {
+  text-decoration: none;
+  color: inherit;
 }
 
 @media (max-width: shared.$bp-phone) {
@@ -68,8 +75,8 @@
 }
 
 // Legacy fallback (guidelines §4.2 "Legacy classes: kept working"): hand-written pages that use
-// `.menu` standalone (no `<mosni-layout>`) still need their own edge — `.layout-menu` below owns
-// the edge for the `<mosni-layout>` grid, but `.menu` keeps its border-right too so the class-only
+// `.menu` standalone (no <mosni-layout>) still need their own edge - `.layout-menu` below owns
+// the edge for the <mosni-layout> grid, but `.menu` keeps its border-right too so the class-only
 // tree still looks right on its own.
 .menu {
   flex-basis: 300px;
@@ -84,7 +91,7 @@
   background-color: var(--mosni-surface);
 }
 
-// `<mosni-menu-item>` is M2 (API §1.2): it introduces no box of its own, so `.menu`'s flex gap
+// <mosni-menu-item> is M2 (API §1.2): it introduces no box of its own, so `.menu`'s flex gap
 // applies directly between `.menu-entry` boxes.
 mosni-menu-item {
   display: contents;
@@ -158,8 +165,8 @@ mosni-menu-item {
   }
 }
 
-// The app frame grid (API §4.2 / guidelines §4.2 — the 0001-g fix). `<mosni-layout>` sets this
-// class on itself (M2 "class on self"); the class-only tree (`<div class="layout">…`) renders
+// The app frame grid (API §4.2 / guidelines §4.2 - the 0001-g fix). <mosni-layout> sets this
+// class on itself (M2 "class on self"); the class-only tree (<div class="layout">...</div>) renders
 // identically.
 .layout {
   display: grid;
@@ -194,7 +201,7 @@ mosni-menu-item {
   overflow-x: clip;
 }
 
-// The footer (declarative `<mosni-footer>` or a hand-authored `.footer`) is pushed to the bottom
+// The footer (declarative <mosni-footer> or a hand-authored `.footer`) is pushed to the bottom
 // of the main region's flow.
 .layout-main > .footer {
   margin-top: auto;

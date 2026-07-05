@@ -1,6 +1,12 @@
 // Supplementary text chip, appended to document.body and positioned via JS (guidelines §4.9).
 @use "shared";
 
+.tooltip-trigger {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: help;
+}
+
 .tooltip {
   position: fixed;
   z-index: shared.$z-tooltip;
@@ -17,7 +23,7 @@
 
   // Shown/hidden by toggling the `hidden` attribute directly in JS (immediate hide, per the
   // "hides immediately" behaviour spec). The fade-in is a pure CSS enhancement on top of that:
-  // browsers without @starting-style just show the tip instantly, which is correct, just
+  // browsers without @starting-style support just show the tip instantly, which is correct, just
   // unanimated.
   opacity: 1;
   transition:

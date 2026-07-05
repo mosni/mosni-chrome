@@ -9,7 +9,6 @@ const distDir = path.join(rootDir, "dist");
 // the docs site (index.html + any generated assets) alongside them.
 const REQUIRED_ASSETS = [
   "mosnicat.js",
-  "cat.js",
   "mosnicat-prism.js",
   "mosnicat.css",
   "mosnicat.png",
@@ -59,7 +58,6 @@ async function main() {
     }
   }
   await assertDependencyFree("mosnicat.js");
-  await assertDependencyFree("cat.js");
   await assertDependencyFree("mosnicat-prism.js");
   await assertLeanCore();
   console.log("check-shape: OK —", entries.join(", "));

@@ -40,7 +40,12 @@ import { initCat } from "./cat";
   // --- head-safe work: document.head always exists while <head> is parsing, so this can run
   // immediately regardless of where the consumer put the <script> tag.
   injectStyle();
-  injectCSS("https://fonts.googleapis.com/css?family=Roboto|Staatliches");
+  // display=swap: render text immediately in the fallback font and swap when the web font arrives,
+  // instead of the browser default (FOIT — text held invisible until the font loads). Without it,
+  // nearly all text (body = Roboto, headings/brand = Staatliches) flashes invisible then reappears.
+  injectCSS(
+    "https://fonts.googleapis.com/css?family=Roboto|Staatliches&display=swap",
+  );
   ensureViewport();
 
   const favicon = document.createElement("link");

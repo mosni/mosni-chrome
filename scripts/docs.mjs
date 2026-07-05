@@ -256,6 +256,10 @@ export async function generateDocs({ distDir }) {
     <meta charset="utf-8" />
     <title>mosnicat</title>
     <link rel="stylesheet" href="mosnicat.css" />
+    <!-- In <head> (blocking) so the bundle registers components + injects styles/fonts BEFORE the body
+         is parsed — otherwise the page paints, then the late script reflows it (component upgrade + style
+         + font swap). This is the recommended drop-in placement for consumers too (D-27: CSS lives in JS). -->
+    <script src="mosnicat.js"></script>
     <style>
       body {
         padding-inline: 1rem;
@@ -308,7 +312,6 @@ export async function generateDocs({ distDir }) {
       &mdash; the two can't drift apart.
     </p>
 ${sections.join('\n    <hr class="divider" />\n')}
-    <script src="mosnicat.js"></script>
   </body>
 </html>
 `;

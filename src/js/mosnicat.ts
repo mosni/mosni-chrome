@@ -9,15 +9,6 @@ import { initCat } from "./cat";
   (window as { __MOSNI_BOOTSTRAPPED__?: boolean }).__MOSNI_BOOTSTRAPPED__ =
     true;
 
-  const injectCSS = (href: string): void => {
-    if (!document.querySelector(`link[href="${href}"]`)) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = href;
-      document.head.appendChild(link);
-    }
-  };
-
   const injectStyle = (): void => {
     if (document.getElementById("mosni-styles")) return;
     const style = document.createElement("style");
@@ -39,13 +30,9 @@ import { initCat } from "./cat";
 
   // --- head-safe work: document.head always exists while <head> is parsing, so this can run
   // immediately regardless of where the consumer put the <script> tag.
+  // injectStyle() also carries the self-hosted @font-face rules (fonts inlined as base64 in the bundled
+  // CSS — D-27), so there is no external font fetch and no fallback→web-font swap.
   injectStyle();
-  // display=swap: render text immediately in the fallback font and swap when the web font arrives,
-  // instead of the browser default (FOIT — text held invisible until the font loads). Without it,
-  // nearly all text (body = Roboto, headings/brand = Staatliches) flashes invisible then reappears.
-  injectCSS(
-    "https://fonts.googleapis.com/css?family=Roboto|Staatliches&display=swap",
-  );
   ensureViewport();
 
   const favicon = document.createElement("link");

@@ -50,6 +50,23 @@ async function assertLeanCore() {
   }
 }
 
+// Self-contained fonts (D-27): the built CSS must carry the inlined base64 @font-face, and the core JS
+// must NOT reach out to an external font host — otherwise the fallback→web-font swap returns.
+async function assertSelfHostedFonts() {
+  const css = await readFile(path.join(distDir, "mosnicat.css"), "utf8");
+  if (!css.includes("@font-face") || !css.includes("data:font/woff2;base64,")) {
+    throw new Error(
+      "mosnicat.css: missing the inlined base64 @font-face (self-hosted fonts, D-27)",
+    );
+  }
+  const core = await readFile(path.join(distDir, "mosnicat.js"), "utf8");
+  if (core.includes("fonts.googleapis.com")) {
+    throw new Error(
+      "mosnicat.js: must not inject an external font stylesheet (fonts.googleapis.com) — fonts are self-hosted (D-27)",
+    );
+  }
+}
+
 async function main() {
   const entries = await readdir(distDir);
   for (const file of REQUIRED_ASSETS) {
@@ -60,6 +77,7 @@ async function main() {
   await assertDependencyFree("mosnicat.js");
   await assertDependencyFree("mosnicat-prism.js");
   await assertLeanCore();
+  await assertSelfHostedFonts();
   console.log("check-shape: OK —", entries.join(", "));
 }
 

@@ -33,12 +33,30 @@ async function buildJs({ css, png }) {
   }
 }
 
+// Self-hosted fonts (D-27): inline the Latin woff2 as base64 @font-face so the fonts travel inside the
+// bundled CSS (→ inside mosnicat.js) with zero external fetch and zero fallback→web-font swap. Roboto v51
+// is a variable font — one file covers every weight (font-weight range). Roboto = Apache-2.0, Staatliches
+// = OFL-1.1 (both embeddable). Latin subset only; non-Latin text falls back to the sans-serif stack.
+async function fontFaceCss() {
+  const face = async (family, weight, file) => {
+    const b64 = (
+      await readFile(path.join(rootDir, "src/assets/fonts", file))
+    ).toString("base64");
+    return `@font-face{font-family:'${family}';font-style:normal;font-weight:${weight};font-display:swap;src:url(data:font/woff2;base64,${b64}) format('woff2')}`;
+  };
+  return (
+    (await face("Roboto", "100 900", "roboto-latin.woff2")) +
+    (await face("Staatliches", "400", "staatliches-latin.woff2"))
+  );
+}
+
 async function buildCss() {
   const result = sass.compile(path.join(rootDir, "src/scss/mosnicat.scss"), {
     style: "compressed",
   });
-  await writeFile(path.join(distDir, "mosnicat.css"), result.css);
-  return result.css;
+  const css = (await fontFaceCss()) + result.css;
+  await writeFile(path.join(distDir, "mosnicat.css"), css);
+  return css;
 }
 
 async function pngDataUri() {

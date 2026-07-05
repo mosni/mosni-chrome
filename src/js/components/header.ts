@@ -1,4 +1,4 @@
-﻿import { MosniElement, define, takeSlot, takeDefault } from "../base-element";
+import { MosniElement, define, takeSlot, takeDefault } from "../base-element";
 
 // Generate role, M1 on `.header` (API §4.1 / guidelines §4.1, §3.3).
 class MosniHeader extends MosniElement {

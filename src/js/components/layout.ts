@@ -1,4 +1,4 @@
-﻿import { MosniElement, define, takeSlot, takeDefault } from "../base-element";
+import { MosniElement, define, takeSlot, takeDefault } from "../base-element";
 import { icon } from "../icons";
 
 // Enhance role, M2 shell — the element itself is the grid (API §4.2 / guidelines §4.2, the

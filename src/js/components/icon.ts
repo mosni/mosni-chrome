@@ -1,4 +1,4 @@
-﻿import { MosniElement, define, assetBase } from "../base-element";
+import { MosniElement, define, assetBase } from "../base-element";
 
 declare global {
   interface Window {

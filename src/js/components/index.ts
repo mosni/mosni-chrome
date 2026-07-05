@@ -1,4 +1,4 @@
-﻿// Imports every component module for its side-effect registration (define()). No other exports.
+// Imports every component module for its side-effect registration (define()). No other exports.
 import "./header";
 import "./layout";
 import "./menu";

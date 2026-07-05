@@ -1,4 +1,4 @@
-﻿// Single-source docs/examples generator (D-13). Each example is authored once as a fragment in
+// Single-source docs/examples generator (D-13). Each example is authored once as a fragment in
 // docs/examples/; this generator emits both the live-rendered demo and the shown snippet from
 // that one fragment, so the two can never drift apart. Framework-free HTML output.
 import { readFile, readdir, writeFile } from "node:fs/promises";

@@ -1,4 +1,4 @@
-﻿import { createElement, icons } from "lucide";
+import { createElement, icons } from "lucide";
 
 declare global {
   interface Window {

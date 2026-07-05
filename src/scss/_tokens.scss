@@ -1,4 +1,4 @@
-﻿// Design tokens as runtime CSS custom properties (D-7) so consumer apps can theme mosnicat at
+// Design tokens as runtime CSS custom properties (D-7) so consumer apps can theme mosnicat at
 // runtime. SCSS variables are reserved for compile-time structure only - never the token layer.
 :root {
   --header-height: 51px;

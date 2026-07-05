@@ -1,4 +1,4 @@
-﻿import { MosniElement, define, takeSlot } from "../base-element";
+import { MosniElement, define, takeSlot } from "../base-element";
 
 const SHOW_DELAY_MS = 0;
 const EDGE_OFFSET_PX = 6;

@@ -197,20 +197,31 @@ mosni-menu-item {
   overflow-y: auto;
 }
 
+// Capped to a reading width and pinned to the start of its grid track (not stretched) so wide
+// viewports keep an exposed gutter on the right - that's where the fixed background cat
+// (_cat.scss) lives; a full-bleed `.layout-main` left it no transparent page background to peek
+// through at all (Hannah-confirmed fix).
 .layout-main {
   grid-column: 2;
   grid-row: 2;
+  justify-self: start;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
   background: var(--mosni-surface-body);
-  padding: 2rem;
+  --layout-padding: 2rem;
+  padding: var(--layout-padding);
   overflow-x: clip;
 }
 
 // The footer (declarative <mosni-footer> or a hand-authored `.footer`) is pushed to the bottom
-// of the main region's flow.
+// of the main region's flow, flush against the edges `.layout-main`'s own padding would
+// otherwise leave around it.
 .layout-main > .footer {
   margin-top: auto;
+  margin-inline: calc(-1 * var(--layout-padding));
+  margin-bottom: calc(-1 * var(--layout-padding));
 }
 
 @media (max-width: shared.$bp-narrow) {
@@ -225,7 +236,10 @@ mosni-menu-item {
 
   .layout-burger {
     display: inline-flex;
-    position: absolute;
+    // Fixed (not absolute) so it stays pinned to the viewport corner instead of scrolling away
+    // with the document, and so it isn't thrown off by the header's own wrapping height at
+    // phone widths.
+    position: fixed;
     top: 0;
     right: 0.5rem;
     height: var(--header-height);
@@ -251,12 +265,14 @@ mosni-menu-item {
   .layout-main {
     grid-column: 1;
     grid-row: 3;
-    padding: 1rem;
+    --layout-padding: 1rem;
+    padding: var(--layout-padding);
   }
 }
 
 @media (max-width: shared.$bp-phone) {
   .layout-main {
-    padding: 0.75rem;
+    --layout-padding: 0.75rem;
+    padding: var(--layout-padding);
   }
 }

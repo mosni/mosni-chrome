@@ -253,12 +253,20 @@ export async function generateDocs({ distDir }) {
     <meta charset="utf-8" />
     <title>Hannah's design library</title>
     <style>
+      @media (prefers-reduced-motion: no-preference) {
+        html {
+          scroll-behavior: smooth;
+        }
+      }
       .docs-content {
         max-width: 60rem;
         margin-inline: auto;
       }
       .doc-example {
         margin: 2rem 0;
+        /* Section anchors sit right under the sticky header without this - offset the scroll
+           target so the heading isn't hidden behind it. */
+        scroll-margin-top: calc(var(--header-height) + 1rem);
       }
       .doc-example-intro {
         margin-inline: 0;

@@ -15,6 +15,14 @@ body {
   line-height: 1.42857143;
 }
 
+// Everything reads slightly too small at the default mobile zoom - bump the base size a touch on
+// narrower viewports (rem-based spacing/type scales with it).
+@media (max-width: shared.$bp-narrow) {
+  body {
+    font-size: 15px;
+  }
+}
+
 a {
   color: var(--mosni-purple-light);
   text-decoration: none;

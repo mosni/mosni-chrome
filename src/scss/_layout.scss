@@ -226,7 +226,6 @@ mosni-menu-item {
   background: var(--mosni-surface-body);
   --layout-padding: 2rem;
   padding: var(--layout-padding);
-  overflow-x: clip;
 }
 
 // The footer (declarative <mosni-footer> or a hand-authored `.footer`) is pushed to the bottom of
@@ -297,10 +296,11 @@ mosni-menu-item {
     --layout-padding: 1rem;
     padding: var(--layout-padding);
     // Below this width there's no side gutter left for the cat to peek through (`.layout-main`
-    // fills the whole track) - a slight translucency keeps it faintly visible rather than fully
-    // hidden again, at a barely-perceptible cost to text contrast. Tune/revert if it reads as too
-    // much on a real phone. rgba mirrors --mosni-surface-body (#444) since tokens stay hex (D-21).
-    background: rgba(68, 68, 68, 0.92);
+    // fills the whole track) - Hannah confirmed a slight translucency (92%) still read as
+    // invisible, so this goes fully transparent instead. Content directly on `.layout-main` (bare
+    // text, not inside its own opaque `.panel`/`.doc-example-demo`-style box) trades some contrast
+    // for the cat actually showing up.
+    background: transparent;
   }
 
   .layout-main > .footer {
@@ -312,6 +312,30 @@ mosni-menu-item {
     align-self: stretch;
     width: auto;
     margin-inline: calc(-1 * var(--layout-padding));
+  }
+
+  // The docs site dogfoods <mosni-layout> by embedding a live, working instance of it as one of
+  // the examples (inside a `.doc-example-demo` preview box). That nested instance shares this
+  // breakpoint's burger/overlay rules with the real page shell, so tapping the demo's own tiny
+  // burger opened a full-screen overlay indistinguishable from real site navigation. A demo isn't
+  // real navigation, so it skips the mobile collapse entirely: no burger, menu always shown
+  // inline (matching the desktop layout, just stacked).
+  .doc-example-demo .layout-burger {
+    display: none;
+  }
+
+  .doc-example-demo .layout-menu {
+    display: block;
+    grid-column: 1;
+    grid-row: 2;
+    position: static;
+    top: auto;
+    left: auto;
+    right: auto;
+    height: auto;
+    overflow-y: visible;
+    border-right: none;
+    border-bottom: 2px solid var(--mosni-purple);
   }
 }
 

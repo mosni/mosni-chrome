@@ -303,7 +303,7 @@ export async function generateDocs({ distDir }) {
   <body>
     <mosni-layout>
       <mosni-header slot="header" brand="MOSNI'S" accent="DESIGN KIT" href="https://mosni.dev" tagline="hannah's design system"></mosni-header>
-      <mosni-menu slot="menu" label="Sections">
+      <mosni-menu id="docs-nav" slot="menu" label="Sections">
         ${navItemsHtml}
       </mosni-menu>
       <div class="docs-content">
@@ -318,6 +318,62 @@ ${sections.join('\n        <hr class="divider" />\n')}
       <mosni-footer slot="footer">made with love by <a slot="links" href="https://mosni.dev">mosni.dev</a></mosni-footer>
     </mosni-layout>
     <script src="mosnicat.js"></script>
+    <script>
+      (function () {
+        // Scoped to the page's own nav (not any nested mosni-menu demo elsewhere on the page,
+        // e.g. the Layout section's live example) so this never steals/clears a demo's own
+        // illustrative selected state.
+        var items = Array.prototype.slice.call(
+          document.querySelectorAll('#docs-nav mosni-menu-item[href^="#"]'),
+        );
+        var entries = items
+          .map(function (item) {
+            return {
+              item: item,
+              section: document.getElementById(
+                item.getAttribute("href").slice(1),
+              ),
+            };
+          })
+          .filter(function (entry) {
+            return entry.section;
+          });
+        if (!entries.length) return;
+
+        var setActive = function (id) {
+          items.forEach(function (item) {
+            item.toggleAttribute("selected", item.getAttribute("href") === "#" + id);
+          });
+        };
+
+        var headerHeight =
+          parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue(
+              "--header-height",
+            ),
+          ) || 0;
+
+        // A section counts as "active" once it has cleared the sticky header; the large negative
+        // bottom margin keeps only sections near the top of the viewport eligible, so scrolling
+        // through a tall section doesn't fight over which nav item is highlighted.
+        var observer = new IntersectionObserver(
+          function (observed) {
+            var visible = observed.filter(function (entry) {
+              return entry.isIntersecting;
+            });
+            if (!visible.length) return;
+            visible.sort(function (a, b) {
+              return a.boundingClientRect.top - b.boundingClientRect.top;
+            });
+            setActive(visible[0].target.id);
+          },
+          { rootMargin: -headerHeight - 1 + "px 0px -70% 0px", threshold: 0 },
+        );
+        entries.forEach(function (entry) {
+          observer.observe(entry.section);
+        });
+      })();
+    </script>
   </body>
 </html>
 `;

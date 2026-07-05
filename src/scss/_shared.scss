@@ -8,6 +8,10 @@ $z-header: 10;
 $z-tooltip: 60;
 $z-toast: 70;
 
+// The <mosni-layout> sidebar column width (desktop grid + the standalone `.menu` fallback) - a
+// single source so the footer's full-bleed breakout (_layout.scss) can subtract it precisely.
+$sidebar-width: 300px;
+
 // The input chrome shared by every text-like control, factored out of .panel's original rules
 // (guidelines §5.6) so .field can reuse it outside a .panel.
 @mixin control-chrome {

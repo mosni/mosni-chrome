@@ -14,6 +14,7 @@ const distDir = path.join(rootDir, "dist");
 const JS_ENTRIES = [
   ["mosnicat", "src/js/mosnicat.ts"],
   ["mosnicat-prism", "src/js/prism/index.ts"],
+  ["mosnicat-icons", "src/js/icons-all/index.ts"],
 ];
 
 async function buildJs({ css, png }) {

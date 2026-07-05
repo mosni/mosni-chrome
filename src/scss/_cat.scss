@@ -1,4 +1,4 @@
-// The bootstrap-managed cat: not author-facing classes.
+﻿// The bootstrap-managed cat: not author-facing classes.
 img.cat {
   position: fixed;
   bottom: 0;
@@ -7,6 +7,12 @@ img.cat {
   transition: opacity 500ms;
   filter: drop-shadow(2px 4px 6px black);
   z-index: -1;
+}
+
+@media (max-width: 480px) {
+  img.cat {
+    left: 55vw;
+  }
 }
 
 canvas.eye {

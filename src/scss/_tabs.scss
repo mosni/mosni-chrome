@@ -1,4 +1,4 @@
-// <mosni-tabs> / <mosni-tab> (guidelines §4.14 / API §4.14). No sliding-indicator animation
+﻿// <mosni-tabs> / <mosni-tab> (guidelines §4.14 / API §4.14). No sliding-indicator animation
 // (deliberate) — the selected state is a static 2px bottom border, only colours transition.
 @use "shared";
 
@@ -28,6 +28,7 @@ mosni-tab {
   color: var(--mosni-text-muted);
   background: none;
   border: none;
+  border-radius: 0;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   cursor: pointer;

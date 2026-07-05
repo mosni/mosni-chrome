@@ -135,6 +135,7 @@ async function testDocsExamplesRender() {
     "table.html": ".table.interactive",
     "prose.html": ".prose",
     "content-container.html": ".content-container",
+    "icons.html": "mosni-icon[name]",
   };
 
   const dom = new JSDOM(indexHtml);

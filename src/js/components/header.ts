@@ -1,4 +1,4 @@
-import { MosniElement, define, takeSlot, takeDefault } from "../base-element";
+﻿import { MosniElement, define, takeSlot, takeDefault } from "../base-element";
 
 // Generate role, M1 on `.header` (API §4.1 / guidelines §4.1, §3.3).
 class MosniHeader extends MosniElement {
@@ -21,10 +21,12 @@ class MosniHeader extends MosniElement {
       this.append(brand);
     }
 
-    const midDiv = document.createElement("div");
-    midDiv.className = "header-mid";
-    midDiv.append(...mid);
-    this.append(midDiv);
+    if (mid.length) {
+      const midDiv = document.createElement("div");
+      midDiv.className = "header-mid";
+      midDiv.append(...mid);
+      this.append(midDiv);
+    }
 
     const littleLink = document.createElement("div");
     littleLink.className = "little-link";

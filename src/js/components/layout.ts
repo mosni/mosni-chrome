@@ -1,4 +1,5 @@
-import { MosniElement, define, takeSlot, takeDefault } from "../base-element";
+﻿import { MosniElement, define, takeSlot, takeDefault } from "../base-element";
+import { icon } from "../icons";
 
 // Enhance role, M2 shell — the element itself is the grid (API §4.2 / guidelines §4.2, the
 // 0001-g fix).
@@ -22,6 +23,18 @@ class MosniLayout extends MosniElement {
     mainEl.className = "layout-main";
     mainEl.append(...main, ...footer);
     this.append(mainEl);
+
+    const burger = document.createElement("button");
+    burger.type = "button";
+    burger.className = "layout-burger";
+    burger.setAttribute("aria-label", "Toggle menu");
+    burger.setAttribute("aria-expanded", "false");
+    burger.appendChild(icon("menu", 20));
+    burger.addEventListener("click", () => {
+      const open = this.classList.toggle("menu-open");
+      burger.setAttribute("aria-expanded", String(open));
+    });
+    this.append(burger);
   }
 }
 

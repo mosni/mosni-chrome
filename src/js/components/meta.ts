@@ -353,6 +353,29 @@ export const componentMeta: ComponentMeta[] = [
     events: [],
   },
   {
+    tag: "mosni-icon",
+    summary:
+      "A public by-name Lucide icon element backed by the lazy mosnicat-icons.js chunk.",
+    attributes: [
+      {
+        name: "name",
+        type: "string",
+        observed: false,
+        default: "-",
+        description: "Lucide icon name (kebab-case).",
+      },
+      {
+        name: "size",
+        type: "number",
+        observed: false,
+        default: "20",
+        description: "Pixel size.",
+      },
+    ],
+    slots: [],
+    events: [],
+  },
+  {
     tag: "mosni-toast",
     summary:
       "The declarative secondary path onto the imperative window.mosni.toast(...) host - composes .toast (API §4.10).",

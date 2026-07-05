@@ -1,4 +1,4 @@
-// The header + content + menu grid family (kept per issue 0001-c: PROMOTE, not pruned - it has no
+﻿// The header + content + menu grid family (kept per issue 0001-c: PROMOTE, not pruned - it has no
 // current real consumer but is the 0002 migration path for the legacy mosni.dev sites).
 @use "shared";
 
@@ -169,6 +169,7 @@ mosni-menu-item {
 // class on itself (M2 "class on self"); the class-only tree (<div class="layout">...</div>) renders
 // identically.
 .layout {
+  position: relative;
   display: grid;
   grid-template-columns: 300px 1fr;
   grid-template-rows: auto 1fr;
@@ -178,6 +179,11 @@ mosni-menu-item {
 .layout > .header {
   grid-column: 1 / -1;
   grid-row: 1;
+}
+
+.layout-burger {
+  @include shared.icon-button;
+  display: none;
 }
 
 .layout-menu {
@@ -214,9 +220,20 @@ mosni-menu-item {
 
   .layout > .header {
     grid-column: 1;
+    padding-right: 3.5rem;
+  }
+
+  .layout-burger {
+    display: inline-flex;
+    position: absolute;
+    top: 0;
+    right: 0.5rem;
+    height: var(--header-height);
+    z-index: calc(shared.$z-header + 1);
   }
 
   .layout-menu {
+    display: none;
     grid-column: 1;
     grid-row: 2;
     position: static;
@@ -225,6 +242,10 @@ mosni-menu-item {
     overflow-y: visible;
     border-right: none;
     border-bottom: 2px solid var(--mosni-purple);
+  }
+
+  .layout.menu-open .layout-menu {
+    display: block;
   }
 
   .layout-main {

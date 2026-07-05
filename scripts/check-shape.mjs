@@ -1,4 +1,4 @@
-import { readFile, readdir } from "node:fs/promises";
+﻿import { readFile, readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -10,6 +10,7 @@ const distDir = path.join(rootDir, "dist");
 const REQUIRED_ASSETS = [
   "mosnicat.js",
   "mosnicat-prism.js",
+  "mosnicat-icons.js",
   "mosnicat.css",
   "mosnicat.png",
 ];
@@ -19,6 +20,7 @@ const BARE_ESM_IMPORT_PATTERN = /\bimport\s[^;]*?from\s*['"](?!\.)/;
 // The Prism-language registry marker (D-23): proves core never statically bundles Prism, and
 // that the lazy chunk actually contains the language data (not just an empty/failed import).
 const PRISM_MARKER = "languages.markup";
+const ICON_MARKER = "M12 15v5s3.03";
 
 async function assertDependencyFree(file) {
   const contents = await readFile(path.join(distDir, file), "utf8");
@@ -50,19 +52,20 @@ async function assertLeanCore() {
   }
 }
 
-// Self-contained fonts (D-27): the built CSS must carry the inlined base64 @font-face, and the core JS
-// must NOT reach out to an external font host — otherwise the fallback→web-font swap returns.
-async function assertSelfHostedFonts() {
-  const css = await readFile(path.join(distDir, "mosnicat.css"), "utf8");
-  if (!css.includes("@font-face") || !css.includes("data:font/woff2;base64,")) {
+async function assertIconSplit() {
+  const core = await readFile(path.join(distDir, "mosnicat.js"), "utf8");
+  if (core.includes(ICON_MARKER)) {
     throw new Error(
-      "mosnicat.css: missing the inlined base64 @font-face (self-hosted fonts, D-27)",
+      `mosnicat.js: core bundle must not statically bundle the full public icon set (found '${ICON_MARKER}')`,
     );
   }
-  const core = await readFile(path.join(distDir, "mosnicat.js"), "utf8");
-  if (core.includes("fonts.googleapis.com")) {
+  const iconChunk = await readFile(
+    path.join(distDir, "mosnicat-icons.js"),
+    "utf8",
+  );
+  if (!iconChunk.includes(ICON_MARKER)) {
     throw new Error(
-      "mosnicat.js: must not inject an external font stylesheet (fonts.googleapis.com) — fonts are self-hosted (D-27)",
+      `mosnicat-icons.js: expected the public icon chunk to contain Rocket's path marker '${ICON_MARKER}'`,
     );
   }
 }
@@ -76,8 +79,9 @@ async function main() {
   }
   await assertDependencyFree("mosnicat.js");
   await assertDependencyFree("mosnicat-prism.js");
+  await assertDependencyFree("mosnicat-icons.js");
   await assertLeanCore();
-  await assertSelfHostedFonts();
+  await assertIconSplit();
   console.log("check-shape: OK —", entries.join(", "));
 }
 

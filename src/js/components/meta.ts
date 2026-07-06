@@ -49,6 +49,14 @@ export const componentMeta: ComponentMeta[] = [
         default: "—",
         description: "Plain text for the right-side little-link region.",
       },
+      {
+        name: "no-logo",
+        type: "boolean",
+        observed: false,
+        default: "false",
+        description:
+          "Suppress the mosni logo, which is shown left of the brand by default.",
+      },
     ],
     slots: [
       {
@@ -367,6 +375,22 @@ export const componentMeta: ComponentMeta[] = [
         observed: false,
         default: "20",
         description: "Pixel size.",
+      },
+    ],
+    slots: [],
+    events: [],
+  },
+  {
+    tag: "mosni-logo",
+    summary:
+      "The mosni mark as an <img> of mosni.svg. Adaptive: size it with height/font-size on the element.",
+    attributes: [
+      {
+        name: "alt",
+        type: "string",
+        observed: false,
+        default: "mosni",
+        description: "Alt text for the logo image.",
       },
     ],
     slots: [],

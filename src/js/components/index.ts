@@ -13,3 +13,4 @@ import "./code";
 import "./accordion";
 import "./tabs";
 import "./icon";
+import "./logo";

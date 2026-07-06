@@ -1,0 +1,15 @@
+// The mosni mark. Adaptive by design: set a height (or font-size) on the element and the SVG keeps
+// its aspect ratio and fills that box, so the same element works at any scale. Defaults to tracking
+// the surrounding font-size so an inline logo reads at text height with no extra sizing.
+mosni-logo {
+  display: inline-flex;
+  align-items: center;
+  height: 1.5em;
+  line-height: 0;
+}
+
+mosni-logo > img {
+  display: block;
+  height: 100%;
+  width: auto;
+}

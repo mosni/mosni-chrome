@@ -66,6 +66,11 @@ async function copyAssets() {
     path.join(rootDir, "src/assets/mosnicat.png"),
     path.join(distDir, "mosnicat.png"),
   );
+  // The mosni mark, served next to the bundle so <mosni-logo> resolves it off the same origin.
+  await copyFile(
+    path.join(rootDir, "src/assets/mosni.svg"),
+    path.join(distDir, "mosni.svg"),
+  );
 }
 
 async function main() {

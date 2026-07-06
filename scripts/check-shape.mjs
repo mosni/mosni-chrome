@@ -14,6 +14,7 @@ const REQUIRED_ASSETS = [
   "mosnicat-icons.js",
   "mosnicat.css",
   "mosnicat.png",
+  "mosni.svg",
 ];
 const BARE_IMPORT_PATTERN = /\brequire\(\s*['"](?!\.)/;
 const BARE_ESM_IMPORT_PATTERN = /\bimport\s[^;]*?from\s*['"](?!\.)/;

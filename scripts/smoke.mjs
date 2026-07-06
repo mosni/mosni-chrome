@@ -124,6 +124,7 @@ async function testDocsExamplesRender() {
     "mosni-tooltip.html": "mosni-tooltip[text]",
     "mosni-toast.html": 'button[onclick*="mosni.toast"]',
     "mosni-lightbox.html": "mosni-lightbox[caption]",
+    "mosni-logo.html": "mosni-logo",
     "mosni-code.html": "mosni-code[language='ts']",
     "mosni-accordion.html": "mosni-accordion[exclusive]",
     "mosni-tabs.html": "mosni-tab[selected]",
@@ -226,6 +227,20 @@ async function testComponents() {
     assertTrue(
       !!brand && brand.firstChild?.textContent === "a",
       "mosni-header: .brand text is 'a'",
+    );
+    assertTrue(
+      !!el.querySelector(".header-brand > mosni-logo"),
+      "mosni-header: .header-brand holds the default mosni-logo",
+    );
+
+    // no-logo suppresses the default logo (exercised on a second instance).
+    const bare = document.createElement("mosni-header");
+    bare.setAttribute("brand", "a");
+    bare.setAttribute("no-logo", "");
+    document.body.appendChild(bare);
+    assertTrue(
+      !bare.querySelector("mosni-logo") && !!bare.querySelector(".brand"),
+      "mosni-header: no-logo omits the logo but keeps the brand",
     );
     assertTrue(
       el.querySelector(".brand .purple")?.textContent === "b",

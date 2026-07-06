@@ -11,13 +11,22 @@ class MosniHeader extends MosniElement {
     const href = this.getAttribute("href");
     const brand = brandSlot.length ? brandSlot[0] : this.buildBrand();
 
+    // Logo + brand travel together as one lockup (this is exordium's / ores' header look) so the
+    // header's space-between layout treats them as a single left-hand unit. Opt out with `no-logo`.
+    const lockup = document.createElement("div");
+    lockup.className = "header-brand";
+    if (!this.hasAttribute("no-logo")) {
+      lockup.append(document.createElement("mosni-logo"));
+    }
+    lockup.append(brand);
+
     if (href) {
       const link = document.createElement("a");
       link.href = href;
-      link.append(brand);
+      link.append(lockup);
       this.append(link);
     } else {
-      this.append(brand);
+      this.append(lockup);
     }
 
     if (mid.length) {

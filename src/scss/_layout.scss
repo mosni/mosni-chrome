@@ -8,16 +8,33 @@
   color: var(--mosni-white);
 }
 
-.header > a:has(> .brand),
-.header > a:has(> .brand):hover,
-.header > a:has(> .brand):focus {
+.header > a:has(.brand),
+.header > a:has(.brand):hover,
+.header > a:has(.brand):focus {
   text-decoration: none;
   color: inherit;
+}
+
+// Logo + brand as one left-hand unit. The logo tracks the header height (not the em default) so it
+// reads at chrome scale rather than text scale.
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.header-brand mosni-logo {
+  height: 34px;
 }
 
 @media (max-width: shared.$bp-phone) {
   .brand {
     font-size: 26px;
+  }
+
+  .header-brand mosni-logo {
+    height: 28px;
   }
 
   .header {

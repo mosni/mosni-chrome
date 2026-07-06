@@ -141,6 +141,14 @@ export const componentMeta: ComponentMeta[] = [
         description:
           "Injected as <h1> unless an authored heading child is present.",
       },
+      {
+        name: "size",
+        type: "string",
+        observed: false,
+        default: "large",
+        description:
+          "Width: large (default, mirrors .text-container)/small (narrow card)/full (full width).",
+      },
     ],
     slots: [
       {

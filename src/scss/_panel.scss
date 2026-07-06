@@ -4,9 +4,9 @@
   display: block;
   box-sizing: border-box;
   width: 100%;
-  max-width: 24rem;
+  max-width: 1100px;
   margin: 2rem auto;
-  padding: 1.5rem 1.75rem;
+  padding: 2rem;
   background: var(--mosni-surface);
   border: 2px solid var(--mosni-purple);
   border-radius: 10px;
@@ -14,6 +14,17 @@
   @include shared.heading-scale;
 }
 
+.panel-small {
+  max-width: 24rem;
+  padding: 1.5rem 1.75rem;
+}
+
+.panel-full {
+  max-width: none;
+}
+
+// All sizes collapse to a full-bleed-safe card on phones (auto width + 1rem margin), so even the
+// wide default never overflows the viewport.
 @media (max-width: 480px) {
   .panel {
     width: auto;

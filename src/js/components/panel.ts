@@ -4,6 +4,10 @@ class MosniPanel extends MosniElement {
   protected render(): void {
     this.classList.add("panel");
 
+    const size = this.getAttribute("size");
+    if (size === "small") this.classList.add("panel-small");
+    else if (size === "full") this.classList.add("panel-full");
+
     const hasHeadingChild = Array.from(this.children).some(
       (child) =>
         child.tagName === "H1" || child.getAttribute("slot") === "heading",

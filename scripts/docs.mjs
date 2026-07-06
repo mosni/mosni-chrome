@@ -259,7 +259,12 @@ export async function generateDocs({ distDir }) {
         }
       }
       .docs-content {
-        max-width: 60rem;
+        /* min(60rem, 100%), not a bare 60rem: this box is a flex item of .layout-main, and its
+           own margin-inline:auto disables flex cross-axis stretch - so without a 100% cap it sizes
+           to its content's max-content (a long code line) and spills past the viewport on mobile,
+           scrolling the whole page. The 100% cap keeps it inside the column; wide children (code,
+           tables) still scroll within their own boxes. */
+        max-width: min(60rem, 100%);
         margin-inline: auto;
       }
       .doc-example {

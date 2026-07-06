@@ -271,8 +271,10 @@ mosni-menu-item {
   // regardless of how far the page is scrolled - the burger that opens it is fixed too, so it
   // stays reachable from anywhere, but a statically-flowed menu would still only ever appear back
   // at the top of the document, off-screen from wherever the user actually is.
+  // `display` can't be transitioned, so the closed state is a translate off-screen (behind the
+  // header) plus `visibility: hidden` - the visibility switch is delayed on close (so it stays
+  // visible through the slide-out) but instant on open (so the slide-in is visible from frame one).
   .layout-menu {
-    display: none;
     position: fixed;
     top: var(--header-height);
     left: 0;
@@ -282,10 +284,23 @@ mosni-menu-item {
     border-right: none;
     border-bottom: 2px solid var(--mosni-purple);
     z-index: shared.$z-header;
+    transform: translateY(-100%);
+    visibility: hidden;
+    transition:
+      transform 200ms ease,
+      visibility 0s linear 200ms;
   }
 
   .layout.menu-open .layout-menu {
-    display: block;
+    transform: translateY(0);
+    visibility: visible;
+    transition: transform 200ms ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .layout-menu {
+      transition: none;
+    }
   }
 
   .layout-main {
@@ -336,6 +351,11 @@ mosni-menu-item {
     overflow-y: visible;
     border-right: none;
     border-bottom: 2px solid var(--mosni-purple);
+    // Reset the real menu's slide-in transform/visibility (cascades in per-property, not
+    // per-selector, so setting `position: static` above doesn't clear these on its own).
+    transform: none;
+    visibility: visible;
+    transition: none;
   }
 }
 

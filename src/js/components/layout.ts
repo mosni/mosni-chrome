@@ -35,6 +35,14 @@ class MosniLayout extends MosniElement {
       burger.setAttribute("aria-expanded", String(open));
     });
     this.append(burger);
+
+    // Close the mobile overlay once a nav item is actually picked, instead of leaving it open
+    // over the section the user just navigated to.
+    menuDiv.addEventListener("click", (event) => {
+      if (!(event.target as HTMLElement).closest(".menu-entry")) return;
+      this.classList.remove("menu-open");
+      burger.setAttribute("aria-expanded", "false");
+    });
   }
 }
 

@@ -1,5 +1,3 @@
-// CSS-only busy indicator (guidelines §5.4). Em-scalable via font-size on the element. Exempt from
-// the standard reduced-motion kill — spinning IS the status information — but still slows down.
 @keyframes rotate {
   to {
     transform: rotate(360deg);

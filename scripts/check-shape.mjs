@@ -5,10 +5,11 @@ import path from "node:path";
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const distDir = path.join(rootDir, "dist");
 
-// The mosnicat drop-in contract (D-2b): these four assets must exist in every build. Wave 3 adds
-// the docs site (index.html + any generated assets) alongside them.
+// These assets must exist in every build. mosnicat.js is the light bootstrap; mosnicat-core.js is
+// the body-half it loads (components + cat).
 const REQUIRED_ASSETS = [
   "mosnicat.js",
+  "mosnicat-core.js",
   "mosnicat-prism.js",
   "mosnicat-icons.js",
   "mosnicat.css",
@@ -17,8 +18,8 @@ const REQUIRED_ASSETS = [
 const BARE_IMPORT_PATTERN = /\brequire\(\s*['"](?!\.)/;
 const BARE_ESM_IMPORT_PATTERN = /\bimport\s[^;]*?from\s*['"](?!\.)/;
 
-// The Prism-language registry marker (D-23): proves core never statically bundles Prism, and
-// that the lazy chunk actually contains the language data (not just an empty/failed import).
+// Proves the core bundle never statically bundles Prism, and that the lazy chunk actually contains
+// the language data.
 const PRISM_MARKER = "languages.markup";
 const ICON_MARKER = "M12 15v5s3.03";
 
@@ -35,10 +36,10 @@ async function assertDependencyFree(file) {
 }
 
 async function assertLeanCore() {
-  const core = await readFile(path.join(distDir, "mosnicat.js"), "utf8");
+  const core = await readFile(path.join(distDir, "mosnicat-core.js"), "utf8");
   if (core.includes(PRISM_MARKER)) {
     throw new Error(
-      `mosnicat.js: core bundle must not statically bundle Prism (found '${PRISM_MARKER}' — Prism's language registry marker; D-23 requires Prism to live only in the lazy mosnicat-prism.js chunk)`,
+      `mosnicat-core.js: core bundle must not statically bundle Prism (found '${PRISM_MARKER}' — Prism's language registry marker; Prism must live only in the lazy mosnicat-prism.js chunk)`,
     );
   }
   const prismChunk = await readFile(
@@ -53,10 +54,10 @@ async function assertLeanCore() {
 }
 
 async function assertIconSplit() {
-  const core = await readFile(path.join(distDir, "mosnicat.js"), "utf8");
+  const core = await readFile(path.join(distDir, "mosnicat-core.js"), "utf8");
   if (core.includes(ICON_MARKER)) {
     throw new Error(
-      `mosnicat.js: core bundle must not statically bundle the full public icon set (found '${ICON_MARKER}')`,
+      `mosnicat-core.js: core bundle must not statically bundle the full public icon set (found '${ICON_MARKER}')`,
     );
   }
   const iconChunk = await readFile(
@@ -78,6 +79,7 @@ async function main() {
     }
   }
   await assertDependencyFree("mosnicat.js");
+  await assertDependencyFree("mosnicat-core.js");
   await assertDependencyFree("mosnicat-prism.js");
   await assertDependencyFree("mosnicat-icons.js");
   await assertLeanCore();

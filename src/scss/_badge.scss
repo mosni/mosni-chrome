@@ -1,5 +1,3 @@
-// One shared pill shape for .badge / .tag (guidelines 5.3): outlined chips, never filled - a
-// fill at the exordium wheel's L75% would glow on the #444 body.
 .badge,
 .tag:not(.token) {
   display: inline-flex;
@@ -34,8 +32,6 @@
   border-color: var(--mosni-error);
 }
 
-// Exordium-wheel literals (S 60% / L 75%): no --mosni-* token exists for cyan or indigo, so these
-// two hues are intentional hex/hsl literals per the design guidelines (2.1/5.3), not violations.
 .badge.cyan,
 .tag.cyan:not(.token) {
   color: #99e6e6;

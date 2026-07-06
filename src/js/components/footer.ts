@@ -1,6 +1,5 @@
 import { MosniElement, define, takeSlot, takeDefault } from "../base-element";
 
-// Enhance role, M1 on `.footer` (API §4.5 / guidelines §4.5).
 class MosniFooter extends MosniElement {
   protected render(): void {
     const links = takeSlot(this, "links");

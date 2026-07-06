@@ -1,7 +1,5 @@
 import { MosniElement, define } from "../base-element";
 
-// Generated-control input types (API §4.6). "textarea" and "select" build a different element;
-// everything else is an <input type="...">.
 const INPUT_TYPES = new Set([
   "text",
   "password",
@@ -39,9 +37,6 @@ class MosniField extends MosniElement {
     const help = this.getAttribute("help");
     const error = this.getAttribute("error");
 
-    // Enhance-first (API §1.1 / §4.6): use an authored real control if present, else generate one
-    // from `type`. An authored <select>'s <option> children come along with it automatically since
-    // we reuse the element itself rather than rebuilding it.
     const authored = this.querySelector(
       "input, textarea, select",
     ) as FieldControl | null;
@@ -55,8 +50,6 @@ class MosniField extends MosniElement {
     if (required) control.setAttribute("required", "");
 
     this.#control = control;
-
-    // Drop any remaining light-DOM content (whitespace text nodes, stray markup) before rebuilding.
     this.textContent = "";
 
     const labelEl = document.createElement("label");

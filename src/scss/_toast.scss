@@ -1,4 +1,3 @@
-// Transient notification stack (guidelines §4.10), shares the alert anatomy.
 @use "shared";
 
 .toast-host {
@@ -37,8 +36,6 @@
     transform: translateY(0.5rem);
   }
 
-  // Exit (JS adds this class, then removes the element once the transition has had time to run;
-  // guidelines §4.10: exit fade 120ms).
   &.toast-leaving {
     opacity: 0;
     transition-duration: 120ms;

@@ -41,16 +41,10 @@ class MosniModal extends MosniElement {
     this.appendChild(dialog);
     this.#dialog = dialog;
 
-    // Backdrop click closes: a pointerdown whose target is the dialog element itself (rather
-    // than any of its content, which would be the target when the click lands on modal content)
-    // means the pointer landed on the ::backdrop area.
     dialog.addEventListener("pointerdown", (event) => {
       if (event.target === dialog) this.close();
     });
 
-    // Reflect native close (Esc -> `cancel` -> the UA's own auto-close -> `close`, or close()
-    // below) back onto the host's `open` attribute. Guarded so the attributeChangedCallback this
-    // triggers (open removed) never re-enters dialog.close() on an already-closed dialog.
     dialog.addEventListener("close", () => {
       if (this.hasAttribute("open")) this.removeAttribute("open");
     });
@@ -66,9 +60,8 @@ class MosniModal extends MosniElement {
     newValue: string | null,
   ): void {
     // An `open` attribute present at parse time reaches this callback before connectedCallback
-    // runs render() (custom-element upgrade order is attributeChangedCallback* then
-    // connectedCallback) — render()'s own initial showModal() call above already covers that
-    // case, so bail out until the dialog actually exists.
+    // runs render() (upgrade order: attributeChangedCallback then connectedCallback) — render()'s
+    // own showModal() covers that case, so bail until the dialog exists.
     if (name !== "open" || !this.#dialog) return;
     if (newValue !== null) {
       if (!this.#dialog.open) this.#dialog.showModal();

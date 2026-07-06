@@ -1,8 +1,6 @@
 import { MosniElement, define, takeSlot, takeDefault } from "../base-element";
 import { icon } from "../icons";
 
-// Enhance role, M2 shell — the element itself is the grid (API §4.2 / guidelines §4.2, the
-// 0001-g fix).
 class MosniLayout extends MosniElement {
   protected render(): void {
     const header = takeSlot(this, "header");
@@ -36,8 +34,6 @@ class MosniLayout extends MosniElement {
     });
     this.append(burger);
 
-    // Close the mobile overlay once a nav item is actually picked, instead of leaving it open
-    // over the section the user just navigated to.
     menuDiv.addEventListener("click", (event) => {
       if (!(event.target as HTMLElement).closest(".menu-entry")) return;
       this.classList.remove("menu-open");

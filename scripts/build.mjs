@@ -8,16 +8,14 @@ import { generateDocs } from "./docs.mjs";
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const distDir = path.join(rootDir, "dist");
 
-// Third entry (D-23): the lazy Prism chunk, built with the exact same options as the two core
-// entries but from a different relative source path — see implementation-waves.md §1.5. Core
-// mosnicat.js never references this file; code.ts loads it via runtime script injection.
 const JS_ENTRIES = [
   ["mosnicat", "src/js/mosnicat.ts"],
+  ["mosnicat-core", "src/js/core.ts"],
   ["mosnicat-prism", "src/js/prism/index.ts"],
   ["mosnicat-icons", "src/js/icons-all/index.ts"],
 ];
 
-async function buildJs({ css, png }) {
+async function buildJs({ png }) {
   for (const [name, srcPath] of JS_ENTRIES) {
     await esbuildBuild({
       entryPoints: [path.join(rootDir, srcPath)],
@@ -27,17 +25,15 @@ async function buildJs({ css, png }) {
       format: "iife",
       target: "es2020",
       define: {
-        __MOSNICAT_CSS__: JSON.stringify(css),
         __MOSNICAT_PNG__: JSON.stringify(png),
       },
     });
   }
 }
 
-// Self-hosted fonts (D-27): inline the Latin woff2 as base64 @font-face so the fonts travel inside the
-// bundled CSS (→ inside mosnicat.js) with zero external fetch and zero fallback→web-font swap. Roboto v51
-// is a variable font — one file covers every weight (font-weight range). Roboto = Apache-2.0, Staatliches
-// = OFL-1.1 (both embeddable). Latin subset only; non-Latin text falls back to the sans-serif stack.
+// Inline the Latin woff2 fonts as base64 @font-face so the fonts travel inside mosnicat.css with no
+// external fetch and no fallback→web-font swap. Roboto (Apache-2.0) is variable — one file covers
+// every weight; Staatliches (OFL-1.1). Latin subset only; other scripts fall back to sans-serif.
 async function fontFaceCss() {
   const face = async (family, weight, file) => {
     const b64 = (
@@ -75,9 +71,9 @@ async function copyAssets() {
 async function main() {
   await rm(distDir, { recursive: true, force: true });
   await mkdir(distDir, { recursive: true });
-  const css = await buildCss();
+  await buildCss();
   const png = await pngDataUri();
-  await buildJs({ css, png });
+  await buildJs({ png });
   await copyAssets();
   await generateDocs({ rootDir, distDir });
   console.log("build: OK — dist/ written");

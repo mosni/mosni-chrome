@@ -1,6 +1,3 @@
-// Label + control + help/error, standardising auth's repeated form stack (guidelines §4.6).
-// The control gets the shared input chrome structurally (no class on the control itself) so a
-// <mosni-field> works standalone as well as inside a .panel (guidelines §5.6).
 @use "shared";
 
 .field {
@@ -20,8 +17,6 @@
   color: var(--mosni-purple);
 }
 
-// Text-like controls share the panel input chrome. Checkbox/radio are excluded - per guidelines
-// §5.6 they stay native + accent-color, not the padded box chrome.
 .field :is(input, textarea, select):not([type="checkbox"]):not([type="radio"]) {
   @include shared.control-chrome;
 }
@@ -59,7 +54,6 @@
   color: var(--mosni-error-strong);
 }
 
-// Error state: text + border only (guidelines §4.6) - no fills.
 .field.error
   :is(input, textarea, select):not([type="checkbox"]):not([type="radio"]) {
   border-color: var(--mosni-error-strong);

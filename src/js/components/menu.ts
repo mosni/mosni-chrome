@@ -1,7 +1,5 @@
 import { MosniElement, define } from "../base-element";
 
-// `<mosni-menu>` — generate role, M1 on `.menu` (API §4.3 / guidelines §4.3). Its
-// `<mosni-menu-item>` children self-render and are left in place, unchanged.
 class MosniMenu extends MosniElement {
   protected render(): void {
     this.classList.add("menu");
@@ -12,7 +10,6 @@ class MosniMenu extends MosniElement {
   }
 }
 
-// `<mosni-menu-item>` — generate role, M2 (`display: contents`, see _layout.scss).
 class MosniMenuItem extends MosniElement {
   static observedAttributes = ["selected"];
 
@@ -56,7 +53,7 @@ class MosniMenuItem extends MosniElement {
   }
 
   private applySelected(): void {
-    if (!this.entry) return; // not rendered yet — render() applies the initial state itself
+    if (!this.entry) return;
     this.entry.classList.toggle("selected", this.selected);
     if (this.selected) {
       this.entry.setAttribute("aria-current", "page");

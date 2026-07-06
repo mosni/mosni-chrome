@@ -1,5 +1,3 @@
-// A centered, responsive card: the default container for a single-purpose page (sign-in, a short
-// form, a brief message). Narrow on desktop, full-bleed-safe on phones.
 @use "shared";
 
 .panel {
@@ -36,7 +34,6 @@
   line-height: 1.5;
 }
 
-// Panel-scoped form controls: opt into a .panel and inputs look right with no per-element classes.
 .panel input[type="text"],
 .panel input[type="password"],
 .panel input[type="email"] {
@@ -56,9 +53,6 @@
   border-color: var(--mosni-purple);
 }
 
-// §5.6 — panel-scoped form control extensions (Wave 1 Unit B): textarea, select, and the
-// remaining text-like input types, plus native checkbox/radio. Additive alongside the existing
-// text/password/email rules above (left untouched).
 .panel textarea,
 .panel select,
 .panel input[type="number"],
@@ -91,8 +85,6 @@
   accent-color: var(--mosni-purple);
 }
 
-// Core requirement is the accent-color + sizing rule above; this is an opt-in enhancement for
-// authors who wrap the control in a label (no wrapper markup is forced).
 .panel label:has(> input[type="checkbox"]),
 .panel label:has(> input[type="radio"]) {
   display: flex;

@@ -1,9 +1,5 @@
-// Side-effect-free docs-tables source (API §3). Must never import a component module - components
-// self-register on import, and customElements does not exist in the Node-side docs generator.
-//
-// Transcribed from `agent-docs/planning-artifacts/0002-component-api.md` §4, one entry per tag (16
-// incl. `mosni-menu-item` and `mosni-tab`), cross-checked against the shipped Wave 1 implementation
-// in src/js/components/*.ts so the table matches real behaviour, not just the idealised spec.
+// Docs-table source, consumed by the Node-side docs generator. Must never import a component
+// module: components self-register on import, and customElements does not exist in Node.
 export interface AttributeMeta {
   name: string;
   type: string;
@@ -22,7 +18,7 @@ export interface ComponentMeta {
 export const componentMeta: ComponentMeta[] = [
   {
     tag: "mosni-header",
-    summary: "The site header bar - composes .header (API §4.1).",
+    summary: "The site header bar - composes .header.",
     attributes: [
       {
         name: "brand",
@@ -70,21 +66,19 @@ export const componentMeta: ComponentMeta[] = [
   {
     tag: "mosni-layout",
     summary:
-      "The app frame grid (header + menu + main + footer) - composes .layout (API §4.2).",
+      "The app frame grid (header + menu + main + footer) - composes .layout.",
     attributes: [],
     slots: [
       { name: "header", description: "A <mosni-header> or any header." },
       { name: "menu", description: "A <mosni-menu>." },
       { name: "footer", description: "An optional <mosni-footer>." },
-      // Unslotted default children go to the main region (documented in the summary, no slot
-      // attribute involved).
     ],
     events: [],
   },
   {
     tag: "mosni-menu",
     summary:
-      "The navigation container for <mosni-menu-item> children - composes .menu (API §4.3).",
+      "The navigation container for <mosni-menu-item> children - composes .menu.",
     attributes: [
       {
         name: "label",
@@ -99,8 +93,7 @@ export const componentMeta: ComponentMeta[] = [
   },
   {
     tag: "mosni-menu-item",
-    summary:
-      "A single menu row, generated from attributes (API §4.3). display: contents.",
+    summary: "A single menu row, generated from attributes. display: contents.",
     attributes: [
       {
         name: "title",
@@ -138,7 +131,7 @@ export const componentMeta: ComponentMeta[] = [
   {
     tag: "mosni-panel",
     summary:
-      "The centred single-purpose-page card, enhanced from authored content - composes .panel (API §4.4).",
+      "The centred single-purpose-page card, enhanced from authored content - composes .panel.",
     attributes: [
       {
         name: "heading",
@@ -160,7 +153,7 @@ export const componentMeta: ComponentMeta[] = [
   },
   {
     tag: "mosni-footer",
-    summary: "The page footer - composes .footer (API §4.5).",
+    summary: "The page footer - composes .footer.",
     attributes: [],
     slots: [
       {
@@ -173,8 +166,7 @@ export const componentMeta: ComponentMeta[] = [
   },
   {
     tag: "mosni-field",
-    summary:
-      "A labelled form control with help/error text - composes .field (API §4.6).",
+    summary: "A labelled form control with help/error text - composes .field.",
     attributes: [
       {
         name: "label",
@@ -245,7 +237,7 @@ export const componentMeta: ComponentMeta[] = [
   {
     tag: "mosni-switch",
     summary:
-      "An enhance-or-generate boolean toggle - composes .switch (API §4.7). display: inline-block.",
+      "An enhance-or-generate boolean toggle - composes .switch. display: inline-block.",
     attributes: [
       {
         name: "checked",
@@ -293,8 +285,7 @@ export const componentMeta: ComponentMeta[] = [
   },
   {
     tag: "mosni-modal",
-    summary:
-      "A dialog over a generated native <dialog> - composes .modal (API §4.8).",
+    summary: "A dialog over a generated native <dialog> - composes .modal.",
     attributes: [
       {
         name: "open",
@@ -318,7 +309,6 @@ export const componentMeta: ComponentMeta[] = [
         description: "Rich heading, overrides the heading attribute.",
       },
       { name: "footer", description: "The action button row." },
-      // Unslotted default children are the modal body.
     ],
     events: [
       {
@@ -332,7 +322,7 @@ export const componentMeta: ComponentMeta[] = [
   {
     tag: "mosni-tooltip",
     summary:
-      "A hover/focus tip appended to document.body - composes .tooltip (API §4.9). display: contents.",
+      "A hover/focus tip appended to document.body - composes .tooltip. display: contents.",
     attributes: [
       {
         name: "text",
@@ -348,7 +338,6 @@ export const componentMeta: ComponentMeta[] = [
         name: "tip",
         description: "Rich tip content, overrides the text attribute.",
       },
-      // Unslotted default children are the anchor (the thing you hover/focus) and stay in place.
     ],
     events: [],
   },
@@ -378,7 +367,7 @@ export const componentMeta: ComponentMeta[] = [
   {
     tag: "mosni-toast",
     summary:
-      "The declarative secondary path onto the imperative window.mosni.toast(...) host - composes .toast (API §4.10).",
+      "The declarative secondary path onto the imperative window.mosni.toast(...) host - composes .toast.",
     attributes: [
       {
         name: "variant",
@@ -401,7 +390,7 @@ export const componentMeta: ComponentMeta[] = [
   {
     tag: "mosni-lightbox",
     summary:
-      "An enhanced <img> that opens a full-resolution overlay - composes .lightbox-thumb / dialog.lightbox (API §4.11).",
+      "An enhanced <img> that opens a full-resolution overlay - composes .lightbox-thumb / dialog.lightbox.",
     attributes: [
       {
         name: "full",
@@ -430,7 +419,7 @@ export const componentMeta: ComponentMeta[] = [
   {
     tag: "mosni-code",
     summary:
-      "A code block with an optional copy button and lazy Prism highlighting - composes .code (API §4.12).",
+      "A code block with an optional copy button and lazy Prism highlighting - composes .code.",
     attributes: [
       {
         name: "language",
@@ -468,7 +457,7 @@ export const componentMeta: ComponentMeta[] = [
   {
     tag: "mosni-accordion",
     summary:
-      "A flat divided list of native <details> sections - styles mosni-accordion details/summary (API §4.13).",
+      "A flat divided list of native <details> sections - styles mosni-accordion details/summary.",
     attributes: [
       {
         name: "exclusive",
@@ -490,7 +479,7 @@ export const componentMeta: ComponentMeta[] = [
   {
     tag: "mosni-tabs",
     summary:
-      "The tablist controller built from <mosni-tab> children - composes .tabs (API §4.14).",
+      "The tablist controller built from <mosni-tab> children - composes .tabs.",
     attributes: [],
     slots: [],
     events: [
@@ -504,7 +493,7 @@ export const componentMeta: ComponentMeta[] = [
   {
     tag: "mosni-tab",
     summary:
-      "The authored tab unit; its content is moved into the generated panel (API §4.14). display: contents.",
+      "The authored tab unit; its content is moved into the generated panel. display: contents.",
     attributes: [
       {
         name: "label",

@@ -1,5 +1,3 @@
-// The header + content + menu grid family (kept per issue 0001-c: PROMOTE, not pruned - it has no
-// current real consumer but is the 0002 migration path for the legacy mosni.dev sites).
 @use "shared";
 
 .brand {
@@ -40,8 +38,6 @@
   align-items: center;
   padding: 0 1.25rem 0 1rem;
   height: var(--header-height);
-  // Also a grid item inside `.layout` - same automatic-minimum-size fix as `.layout-main` so a
-  // long brand/tagline can't force the grid track (and the page) wider than the viewport.
   min-width: 0;
 }
 
@@ -77,10 +73,6 @@
   align-items: flex-start;
 }
 
-// Legacy fallback (guidelines §4.2 "Legacy classes: kept working"): hand-written pages that use
-// `.menu` standalone (no <mosni-layout>) still need their own edge - `.layout-menu` below owns
-// the edge for the <mosni-layout> grid, but `.menu` keeps its border-right too so the class-only
-// tree still looks right on its own.
 .menu {
   flex-basis: shared.$sidebar-width;
   min-width: shared.$sidebar-width;
@@ -94,8 +86,6 @@
   background-color: var(--mosni-surface);
 }
 
-// <mosni-menu-item> is M2 (API §1.2): it introduces no box of its own, so `.menu`'s flex gap
-// applies directly between `.menu-entry` boxes.
 mosni-menu-item {
   display: contents;
 }
@@ -136,7 +126,6 @@ mosni-menu-item {
   color: var(--mosni-purple);
 }
 
-// Selected + hover: hover background wins, the accent bar and title colour stay (guidelines §4.3).
 .menu-entry.selected:hover {
   background-color: var(--mosni-surface-hover);
 }
@@ -144,7 +133,6 @@ mosni-menu-item {
 .menu-entry {
   @include shared.focus-ring;
 
-  // Inset so the ring stays visible against the column edge, instead of the standard +2px.
   &:focus-visible {
     outline-offset: -2px;
   }
@@ -168,9 +156,6 @@ mosni-menu-item {
   }
 }
 
-// The app frame grid (API §4.2 / guidelines §4.2 - the 0001-g fix). <mosni-layout> sets this
-// class on itself (M2 "class on self"); the class-only tree (<div class="layout">...</div>) renders
-// identically.
 .layout {
   position: relative;
   display: grid;
@@ -201,44 +186,26 @@ mosni-menu-item {
   overflow-y: auto;
 }
 
-// Capped to a reading width and pinned to the start of its grid track (not stretched) so wide
-// viewports keep an exposed gutter on the right - that's where the fixed background cat
-// (_cat.scss) lives; a full-bleed `.layout-main` left it no transparent page background to peek
-// through at all (Hannah-confirmed fix).
 .layout-main {
   grid-column: 2;
   grid-row: 2;
   justify-self: start;
   display: flex;
   flex-direction: column;
-  // border-box so `width`/`max-width` describe the full box - with the default content-box, the
-  // padding below adds on top and pushes the box past its grid track (visible as real horizontal
-  // page overflow at narrow widths, where the track has no slack left to absorb it).
   box-sizing: border-box;
   width: 100%;
   max-width: 1200px;
-  // Grid items default to a content-based automatic minimum size (same quirk as flex items) -
-  // without this, a non-wrapping child (a wide code snippet, a table) silently forces this whole
-  // column - and with it the `1fr` track, `.layout`, and the page - wider than the viewport
-  // instead of scrolling internally via its own `overflow` handling. Real regression Hannah hit
-  // on mobile once this box gained an explicit width/max-width.
+  // Grid items have a content-based automatic minimum size; without this a non-wrapping child
+  // (wide code snippet, table) forces this column and the page wider than the viewport.
   min-width: 0;
   background: var(--mosni-surface-body);
   --layout-padding: 2rem;
   padding: var(--layout-padding);
 }
 
-// The footer (declarative <mosni-footer> or a hand-authored `.footer`) is pushed to the bottom of
-// the main region's flow. It stays flush on the left with `.layout-main`'s own edge, but breaks
-// out of `.layout-main`'s reading-width cap on the right so it spans to the true edge of the app
-// (Hannah-confirmed: the footer is page furniture, not reading content - it shouldn't stop where
-// the cat gutter starts). `100vw` (not a percentage of `.layout-main`, which is capped) is what
-// makes the breakout possible; the sidebar width is subtracted since the footer starts right of it.
 .layout-main > .footer {
   margin-top: auto;
   align-self: flex-start;
-  // border-box so the explicit width below is the full visual box (border/padding included) -
-  // otherwise `.footer`'s own padding (_footer.scss) pushes the right edge past the viewport.
   box-sizing: border-box;
   width: calc(100vw - shared.$sidebar-width);
   margin-left: calc(-1 * var(--layout-padding));
@@ -257,9 +224,6 @@ mosni-menu-item {
 
   .layout-burger {
     display: inline-flex;
-    // Fixed (not absolute) so it stays pinned to the viewport corner instead of scrolling away
-    // with the document, and so it isn't thrown off by the header's own wrapping height at
-    // phone widths.
     position: fixed;
     top: 0;
     right: 0.5rem;
@@ -267,13 +231,6 @@ mosni-menu-item {
     z-index: calc(shared.$z-header + 1);
   }
 
-  // A fixed overlay (not a static in-flow block) so it always opens right below the header,
-  // regardless of how far the page is scrolled - the burger that opens it is fixed too, so it
-  // stays reachable from anywhere, but a statically-flowed menu would still only ever appear back
-  // at the top of the document, off-screen from wherever the user actually is.
-  // `display` can't be transitioned, so the closed state is a translate off-screen (behind the
-  // header) plus `visibility: hidden` - the visibility switch is delayed on close (so it stays
-  // visible through the slide-out) but instant on open (so the slide-in is visible from frame one).
   .layout-menu {
     position: fixed;
     top: var(--header-height);
@@ -305,36 +262,18 @@ mosni-menu-item {
 
   .layout-main {
     grid-column: 1;
-    // The menu is an overlay now (not an in-flow sibling), so main content no longer needs to
-    // cede a row to it when open.
     grid-row: 2;
     --layout-padding: 1rem;
     padding: var(--layout-padding);
-    // Below this width there's no side gutter left for the cat to peek through (`.layout-main`
-    // fills the whole track) - Hannah confirmed a slight translucency (92%) still read as
-    // invisible, so this goes fully transparent instead. Content directly on `.layout-main` (bare
-    // text, not inside its own opaque `.panel`/`.doc-example-demo`-style box) trades some contrast
-    // for the cat actually showing up.
     background: transparent;
   }
 
   .layout-main > .footer {
-    // No sidebar, and `.layout-main`'s reading-width cap never engages below this width (the
-    // track itself is already narrower than the cap) - so there's nothing to break out of here.
-    // Reverting to a plain stretch flush against `.layout-main`'s own (already full-width) edges
-    // keeps the footer exactly viewport-wide without `100vw`, which runs a scrollbar's width too
-    // wide and reintroduces horizontal overflow.
     align-self: stretch;
     width: auto;
     margin-inline: calc(-1 * var(--layout-padding));
   }
 
-  // The docs site dogfoods <mosni-layout> by embedding a live, working instance of it as one of
-  // the examples (inside a `.doc-example-demo` preview box). That nested instance shares this
-  // breakpoint's burger/overlay rules with the real page shell, so tapping the demo's own tiny
-  // burger opened a full-screen overlay indistinguishable from real site navigation. A demo isn't
-  // real navigation, so it skips the mobile collapse entirely: no burger, menu always shown
-  // inline (matching the desktop layout, just stacked).
   .doc-example-demo .layout-burger {
     display: none;
   }
@@ -351,8 +290,6 @@ mosni-menu-item {
     overflow-y: visible;
     border-right: none;
     border-bottom: 2px solid var(--mosni-purple);
-    // Reset the real menu's slide-in transform/visibility (cascades in per-property, not
-    // per-selector, so setting `position: static` above doesn't clear these on its own).
     transform: none;
     visibility: visible;
     transition: none;

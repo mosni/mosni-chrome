@@ -1,6 +1,3 @@
-// The page footer (guidelines §4.5) — distinct from the header's tagline slot. No sticky/fixed
-// positioning: inside `<mosni-layout>` it sits at the bottom of the main region (see _layout.scss
-// `.layout-main > .footer`); standalone it's a normal block.
 @use "shared";
 
 .footer {

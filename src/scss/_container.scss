@@ -1,6 +1,3 @@
-// The reading surface for content pages (guidelines §5.7): generalises the old `.text-container`
-// (was 8px radius, margin: 2rem) into the canonical `.content-container`, with `.text-container`
-// kept as a working alias (no consumer breakage, API §5).
 @use "shared";
 
 .content-container,

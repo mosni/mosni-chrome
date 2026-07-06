@@ -1,6 +1,5 @@
-// Single-source docs/examples generator (D-13). Each example is authored once as a fragment in
-// docs/examples/; this generator emits both the live-rendered demo and the shown snippet from
-// that one fragment, so the two can never drift apart. Framework-free HTML output.
+// Generates the docs page from the fragments in docs/examples/: each fragment is emitted both as a
+// live demo and as its shown snippet, so the two can never drift apart.
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -252,6 +251,7 @@ export async function generateDocs({ distDir }) {
   <head>
     <meta charset="utf-8" />
     <title>Hannah's design library</title>
+    <script src="mosnicat.js"></script>
     <style>
       @media (prefers-reduced-motion: no-preference) {
         html {
@@ -259,18 +259,14 @@ export async function generateDocs({ distDir }) {
         }
       }
       .docs-content {
-        /* min(60rem, 100%), not a bare 60rem: this box is a flex item of .layout-main, and its
-           own margin-inline:auto disables flex cross-axis stretch - so without a 100% cap it sizes
-           to its content's max-content (a long code line) and spills past the viewport on mobile,
-           scrolling the whole page. The 100% cap keeps it inside the column; wide children (code,
-           tables) still scroll within their own boxes. */
+        /* min(), not a bare 60rem: this flex item's margin-inline:auto disables cross-axis
+           stretch, so without the 100% cap it sizes to a long code line and scrolls the page on
+           mobile. Wide children (code, tables) still scroll within their own boxes. */
         max-width: min(60rem, 100%);
         margin-inline: auto;
       }
       .doc-example {
         margin: 2rem 0;
-        /* Section anchors sit right under the sticky header without this - offset the scroll
-           target so the heading isn't hidden behind it. */
         scroll-margin-top: calc(var(--header-height) + 1rem);
       }
       .doc-example-intro {
@@ -322,12 +318,9 @@ ${sections.join('\n        <hr class="divider" />\n')}
       </div>
       <mosni-footer slot="footer">made with love by <a slot="links" href="https://mosni.dev">mosni.dev</a></mosni-footer>
     </mosni-layout>
-    <script src="mosnicat.js"></script>
     <script>
       (function () {
-        // Scoped to the page's own nav (not any nested mosni-menu demo elsewhere on the page,
-        // e.g. the Layout section's live example) so this never steals/clears a demo's own
-        // illustrative selected state.
+        // Scoped to the page's own nav so it never touches a nested mosni-menu demo's selected state.
         var items = Array.prototype.slice.call(
           document.querySelectorAll('#docs-nav mosni-menu-item[href^="#"]'),
         );
@@ -358,9 +351,6 @@ ${sections.join('\n        <hr class="divider" />\n')}
             ),
           ) || 0;
 
-        // A section counts as "active" once it has cleared the sticky header; the large negative
-        // bottom margin keeps only sections near the top of the viewport eligible, so scrolling
-        // through a tall section doesn't fight over which nav item is highlighted.
         var observer = new IntersectionObserver(
           function (observed) {
             var visible = observed.filter(function (entry) {

@@ -1,4 +1,3 @@
-// Supplementary text chip, appended to document.body and positioned via JS (guidelines §4.9).
 @use "shared";
 
 .tooltip-trigger {
@@ -21,10 +20,6 @@
   box-shadow: var(--mosni-shadow-floating);
   pointer-events: none;
 
-  // Shown/hidden by toggling the `hidden` attribute directly in JS (immediate hide, per the
-  // "hides immediately" behaviour spec). The fade-in is a pure CSS enhancement on top of that:
-  // browsers without @starting-style support just show the tip instantly, which is correct, just
-  // unanimated.
   opacity: 1;
   transition:
     opacity 120ms ease,

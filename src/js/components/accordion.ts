@@ -22,8 +22,6 @@ class MosniAccordion extends MosniElement {
         summary.appendChild(chevron);
       }
       if (groupName) {
-        // Native mutual-exclusion via the HTML `name` attribute on <details> (API §4.13) — a
-        // relatively new but standard browser feature.
         details.name = groupName;
       }
     }

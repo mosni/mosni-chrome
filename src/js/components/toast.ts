@@ -57,7 +57,7 @@ const getHost = (): HTMLDivElement => {
 };
 
 const startTimer = (entry: ToastEntry): void => {
-  if (entry.duration <= 0) return; // sticky
+  if (entry.duration <= 0) return;
   entry.startedAt = Date.now();
   entry.timer = window.setTimeout(() => removeToast(entry), entry.remaining);
 };
@@ -79,15 +79,14 @@ const resumeTimer = (entry: ToastEntry): void => {
 
 function removeToast(entry: ToastEntry): void {
   const index = visible.indexOf(entry);
-  if (index === -1) return; // already removed/removing
+  if (index === -1) return;
   visible.splice(index, 1);
   if (entry.timer !== undefined) window.clearTimeout(entry.timer);
   entry.el.dispatchEvent(
     new CustomEvent("mosni-toast-dismiss", { bubbles: true }),
   );
-  // Exit fade (guidelines §4.10: exit 120ms) — remove from the queue/DOM-visible-set immediately
-  // (so max-visible accounting is correct right away) but let the element finish its CSS
-  // transition before actually detaching it.
+  // Drop from the visible set immediately (so max-visible accounting is right away) but let the
+  // element finish its CSS exit transition before detaching it.
   entry.el.classList.add("toast-leaving");
   window.setTimeout(() => entry.el.remove(), EXIT_MS + 30);
 }
@@ -132,7 +131,6 @@ function createToast(message: string, options: ToastOptions = {}): ToastHandle {
   visible.push(entry);
   startTimer(entry);
 
-  // Max 3 visible at once; the oldest collapses out first.
   while (visible.length > MAX_VISIBLE) {
     removeToast(visible[0]);
   }
@@ -145,9 +143,6 @@ if (!window.mosni.toast) {
   window.mosni.toast = createToast;
 }
 
-/** Declarative secondary path: <mosni-toast variant="success" open>message</mosni-toast>
- *  registers into the same host/queue as an imperative call, then removes itself from its
- *  original position — the visual toast now lives in the host (API §4.10). */
 class MosniToast extends MosniElement {
   protected render(): void {
     const variantAttr = this.getAttribute("variant");

@@ -1,9 +1,6 @@
-// Design tokens as runtime CSS custom properties (D-7) so consumer apps can theme mosnicat at
-// runtime. SCSS variables are reserved for compile-time structure only - never the token layer.
 :root {
   --header-height: 51px;
 
-  // Accent palette
   --mosni-purple: #996bef;
   --mosni-purple-strong: #886bef;
   --mosni-purple-light: #ab7fff;
@@ -11,14 +8,12 @@
   --mosni-purple-dark: #8a5be0;
   --mosni-purple-focus-ring: #d9c8ff;
 
-  // Surfaces (D-21 ramp: 5 functional roles, hex-normalised, widened steps)
   --mosni-surface: #303030;
   --mosni-surface-body: #444444;
   --mosni-surface-input: #262626;
   --mosni-surface-hover: #545454;
   --mosni-surface-selected: #3a3a3a;
 
-  // Text & borders
   --mosni-text-muted: #aaa;
   --mosni-text-soft: #ddd;
   --mosni-border-muted: #6b6b6b;
@@ -26,12 +21,10 @@
   --mosni-white: #fff;
   --mosni-black: #000;
 
-  // Semantic status colours (D-22)
   --mosni-success: #99e6b5;
   --mosni-error: #e699bf;
   --mosni-error-strong: #d13a3f;
 
-  // Floating-layer chrome
   --mosni-overlay: rgb(0 0 0 / 0.55);
   --mosni-overlay-heavy: rgb(0 0 0 / 0.8);
   --mosni-shadow-floating: 0 8px 24px rgb(0 0 0 / 0.35);

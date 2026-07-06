@@ -49,14 +49,10 @@ class MosniLightbox extends MosniElement {
     closeBtn.addEventListener("click", () => this.close());
     dialog.appendChild(closeBtn);
 
-    // Backdrop click closes: a pointerdown that lands on the dialog element itself (not a
-    // descendant) means the click was outside the dialog's own layout box, i.e. on the backdrop.
     dialog.addEventListener("pointerdown", (event) => {
       if (event.target === dialog) this.close();
     });
 
-    // Native `close` fires for both explicit close() and Esc (`cancel` then `close`) — clean up
-    // the generated dialog either way so activating again builds a fresh one.
     dialog.addEventListener(
       "close",
       () => {

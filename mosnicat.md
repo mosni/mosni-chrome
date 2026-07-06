@@ -97,8 +97,7 @@ strongest no-JS story. Neither path is deprecated or secondary, and this is not 
 - Runtime-state attributes reflect via a mirroring property (`modal.open`, `switch.checked`,
   `menuItem.selected`, `tab.selected`, …) — setting either the attribute or the property keeps both in sync.
 
-**Design language:** components follow the same design language as the primitives above — see decision
-**D-20** (and **D-21**/**D-22** token refinements) in `agent-docs/decisions.md`.
+**Design language:** components follow the same design language as the primitives above.
 
 **Flash guard + no-JS.** A scoped hide-until-defined rule covers exactly two tags —
 `mosni-menu-item:not(:defined)` and `mosni-toast:not(:defined)` — never a blanket `mosni-*` rule, so it only
@@ -108,7 +107,7 @@ path as their no-JS fallback** (the same D-17 guarantee that makes the two autho
 
 ## Design language
 
-mosnicat's visual language (project decision **D-20**, with the token-layer refinements **D-21/D-22**):
+mosnicat's visual language:
 
 - **Palette — anchored on three colours:** `#996bef` (purple accent), `#444` (dark body surface), `#fff`
   (white). **Flat colours, few-to-no gradients** — "flat" targets gradient _fills_, not the functional surface
@@ -121,20 +120,19 @@ mosnicat's visual language (project decision **D-20**, with the token-layer refi
 
 Tokens are runtime CSS custom properties in the served `mosnicat.css`, so a consumer can re-theme by overriding
 them. Some refinements under this language are **decided but not yet shipped** — they land together at the
-mosni.dev cutover (reviewed on `ui.mosni.dev` first): a slightly cleaned-up surface ramp (D-21) and semantic
-`.status` success/error variants (D-22). Full rationale: mosni-chrome `agent-docs/decisions.md` (D-20/D-21/D-22).
+mosni.dev cutover (reviewed on `ui.mosni.dev` first): a slightly cleaned-up surface ramp and semantic
+`.status` success/error variants.
 
 ## How visual work flows (leave it better than you found it)
 
-The chrome is the shared `main`; each app's views are consumers. This mirrors the agent-docs template ritual:
+The chrome is the shared `main`; each app's views are consumers. The flow:
 
 - **Portable visual decisions flow _up_ into mosnicat.** If a phase invents a reusable primitive or refines a
   shared one, add it here (`mosnicat.css`/`.js`) and document it in this file — don't leave it in the app.
 - **App-specific bits stay local.** Keep each app's divergence minimal so the shared system stays clean and
   future refinements merge without conflict.
 - **Visual polish is per-phase, on this baseline** — each phase styles its own views against these
-  primitives as part of that phase, rather than deferring all polish to a single late pass. (auth's
-  `agent-docs/decisions.md` D-45 records this for the auth project.)
+  primitives as part of that phase, rather than deferring all polish to a single late pass.
 
 ## Files
 

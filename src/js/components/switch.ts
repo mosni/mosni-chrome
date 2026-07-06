@@ -12,7 +12,6 @@ class MosniSwitch extends MosniElement {
     const name = this.getAttribute("name");
     const value = this.getAttribute("value");
 
-    // Enhance-first (API §1.1 / §4.7): an authored real checkbox is the no-JS route.
     const authored = this.querySelector(
       'input[type="checkbox"]',
     ) as HTMLInputElement | null;
@@ -20,8 +19,6 @@ class MosniSwitch extends MosniElement {
     if (authored) authored.remove();
     else input.type = "checkbox";
 
-    // Host attribute wins when present; otherwise adopt the (authored) control's own initial state
-    // so an authored `<input type="checkbox" checked>` is not clobbered by an absent host attribute.
     if (this.hasAttribute("checked")) input.checked = true;
     else if (input.checked) this.setAttribute("checked", "");
 
@@ -31,7 +28,6 @@ class MosniSwitch extends MosniElement {
     if (name) input.setAttribute("name", name);
     if (value !== null) input.setAttribute("value", value);
 
-    // A user toggling the (possibly authored) checkbox keeps `checked` in sync on the host.
     input.addEventListener("change", () => {
       this.toggleAttribute("checked", input.checked);
     });

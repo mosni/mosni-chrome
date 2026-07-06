@@ -1,5 +1,3 @@
-// The in-flow sibling of the toast (guidelines §5.2 / §4.10): identical anatomy, no shadow, full
-// available width. Default/info accent is purple; success/error map to the D-22 semantic tokens.
 .alert {
   display: flex;
   align-items: flex-start;
@@ -20,8 +18,6 @@
   }
 }
 
-// Inside a --mosni-surface panel/container, the alert would blend into its own background — swap
-// to the selected step so it still reads as a distinct block (guidelines §5.2).
 .panel .alert,
 .content-container .alert,
 .text-container .alert {

@@ -1,7 +1,3 @@
-// mosnicat — the shared visual chrome / design system for the mosni stack.
-// Partials, in cascade order: tokens (custom properties) -> base theme -> layout family ->
-// container -> panel -> buttons -> status -> the 0002 component set -> utilities -> cat.
-// See mosnicat.md for the design-system contract.
 @use "tokens";
 @use "base";
 @use "layout";

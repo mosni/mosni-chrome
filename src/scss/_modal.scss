@@ -1,8 +1,5 @@
-// Native <dialog> panel (guidelines §4.8): the top layer needs no z-index (§2.4).
 @use "shared";
 
-// M2: the host contributes no box of its own - the generated <dialog class="modal"> is the real
-// element.
 mosni-modal {
   display: contents;
 }
@@ -21,9 +18,6 @@ mosni-modal {
   border-radius: 10px;
   box-shadow: var(--mosni-shadow-floating);
 
-  // Entry/exit transition for the native top layer. Browsers without @starting-style support
-  // just show/hide instantly (open/close itself is driven by showModal()/close() in JS, never by
-  // this CSS) - correctness of the dialog opening and closing never depends on this rule.
   opacity: 0;
   transform: scale(0.98);
   transition:
@@ -113,7 +107,6 @@ mosni-modal {
   gap: 0.5rem;
   margin-top: 1.5rem;
 
-  // No slot="footer" content was supplied - don't reserve the margin-top for an empty row.
   &:empty {
     display: none;
   }

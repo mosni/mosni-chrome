@@ -1,7 +1,5 @@
 import { MosniElement, define } from "../base-element";
 
-/** The authored unit (API §4.14). Its content is moved into the panel <mosni-tabs> builds; the
- *  host itself becomes display:contents (styled in _tabs.scss) so it introduces no box. */
 class MosniTab extends MosniElement {
   static get observedAttributes(): string[] {
     return ["selected"];
@@ -19,10 +17,7 @@ class MosniTab extends MosniElement {
     this.toggleAttribute("selected", value);
   }
 
-  protected render(): void {
-    // Nothing to build: <mosni-tabs> reads this element's attributes/content directly and moves
-    // the content into the generated panel on its own connect.
-  }
+  protected render(): void {}
 }
 
 class MosniTabs extends MosniElement {
@@ -70,8 +65,6 @@ class MosniTabs extends MosniElement {
       panel.id = `panel-${index}`;
       panel.setAttribute("aria-labelledby", `tab-${index}`);
       if (!isSelected) panel.hidden = true;
-      // Move the tab's authored content into its panel (simplest way to satisfy "moved content":
-      // pull the children out rather than relocating the <mosni-tab> host itself).
       while (tab.firstChild) panel.appendChild(tab.firstChild);
       panels.push(panel);
 
@@ -121,10 +114,6 @@ class MosniTabs extends MosniElement {
     );
   }
 
-  /** Roving-tabindex arrow-key navigation (API §4.14, standard manual-activation ARIA tabs
-   *  pattern): arrow keys move FOCUS along the tablist only, wrapping at the ends. They do not
-   *  select — Enter/Space activates the focused tab via the browser's native <button> click
-   *  behaviour, which routes through the button's own click listener into select(). */
   private onKeydown(event: KeyboardEvent): void {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
     const count = this.buttons.length;

@@ -9,9 +9,6 @@ declare global {
 
 const PRISM_CHUNK_URL = `${assetBase}mosnicat-prism.js`;
 
-// Module-level state shared across every <mosni-code> instance (D-23 / implementation-waves §1.5):
-// only one script injection ever happens, and every instance connecting before or after the chunk
-// loads gets highlighted exactly once.
 let prismState: "unloaded" | "loading" | "loaded" | "error" = "unloaded";
 const pending: Element[] = [];
 
@@ -23,13 +20,10 @@ const flushPending = (): void => {
   for (const codeEl of pending.splice(0)) highlightNow(codeEl);
 };
 
-/** Idempotent script injection (the bootstrap's proven pattern) — loads the lazy Prism chunk on
- *  first use only, never via `import()` (see implementation-waves.md §1.5 for why). */
 const ensurePrismLoaded = (): void => {
   if (prismState === "loaded" || prismState === "loading") return;
   const existing = document.querySelector(`script[src="${PRISM_CHUNK_URL}"]`);
   if (existing) {
-    // Another instance already injected the tag (or a naive re-include); just wait on it.
     prismState = "loading";
     existing.addEventListener("load", () => {
       prismState = "loaded";
@@ -48,8 +42,6 @@ const ensurePrismLoaded = (): void => {
     flushPending();
   });
   script.addEventListener("error", () => {
-    // Never throw: the unhighlighted block is already correct output (colour is enhancement
-    // only, guidelines §4.12). Leave any pending blocks as plain text.
     prismState = "error";
   });
   document.head.appendChild(script);
@@ -57,8 +49,6 @@ const ensurePrismLoaded = (): void => {
 
 class MosniCode extends MosniElement {
   protected render(): void {
-    // Read the raw authored text before rebuilding children (API §4.12: author writes inside
-    // <pre> or with escaped `<`).
     const raw = this.textContent ?? "";
     const language = this.getAttribute("language") ?? "";
     const label = this.getAttribute("label") || language;
@@ -119,8 +109,7 @@ class MosniCode extends MosniElement {
         }, 1500);
       })
       .catch(() => {
-        // Clipboard API can reject (no permission, non-HTTPS context, …) — leave the icon
-        // unchanged, never throw.
+        /* clipboard can reject (no permission / insecure context) — leave the icon unchanged */
       });
   }
 }

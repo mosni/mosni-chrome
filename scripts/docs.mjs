@@ -313,7 +313,7 @@ export async function generateDocs({ distDir }) {
           A drop-in design system - no framework, no build step. Add one tag and every class and
           <code>&lt;mosni-*&gt;</code> element below just works:
         </p>
-        <mosni-code language="html"><pre>&lt;script src="https://ui.mosni.dev/mosnicat.js"&gt;&lt;/script&gt;</pre></mosni-code>
+        <mosni-code language="html"><pre>&lt;script src="https://mosni.dev/mosnicat.js"&gt;&lt;/script&gt;</pre></mosni-code>
 ${sections.join('\n        <hr class="divider" />\n')}
       </div>
       <mosni-footer slot="footer">made with love by <a slot="links" href="https://mosni.dev">mosni.dev</a></mosni-footer>

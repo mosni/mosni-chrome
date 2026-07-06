@@ -5,8 +5,10 @@
   if (flags.__MOSNI_BOOTSTRAPPED__) return;
   flags.__MOSNI_BOOTSTRAPPED__ = true;
 
-  const src = (document.currentScript as HTMLScriptElement | null)?.src;
-  const base = src ? new URL(".", src).href : "https://mosni.dev/";
+  // Assets always load from ui.mosni.dev, even when this bootstrap tag is served from
+  // mosni.dev — so the stylesheet + core + lazy chunks version together off one origin and
+  // mosni.dev only needs to host this single file.
+  const base = "https://ui.mosni.dev/";
 
   if (!document.getElementById("mosni-styles")) {
     const link = document.createElement("link");

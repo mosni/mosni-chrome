@@ -7,7 +7,7 @@ The shared visual chrome and design system for the Hannah's stack
 Add one tag to your page's `<head>`:
 
 ```html
-<script src="https://ui.mosni.dev/mosnicat.js"></script>
+<script src="https://mosni.dev/mosnicat.js"></script>
 ```
 
 That loads the stylesheet and registers every `<mosni-*>` component. Nothing else to wire up.

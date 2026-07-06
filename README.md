@@ -1,7 +1,6 @@
-# mosnicat
+# Mosni Design Framework
 
-The shared visual chrome and design system for the mosni stack — a drop-in of CSS and native
-web components. No framework, no build step for consumers.
+The shared visual chrome and design system for the Hannah's stack
 
 ## Use it
 

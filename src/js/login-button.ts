@@ -1,6 +1,8 @@
 // Standalone, self-contained brand login button (the "Log in with MOSNIAUTH" widget).
-// The repo's first Shadow-DOM element: it deliberately does NOT extend the light-DOM MosniElement and
-// carries zero global side effects. Everything lives in its shadow root.
+// The repo's first Shadow-DOM element: it deliberately does NOT extend the light-DOM MosniElement.
+// Everything renders inside its shadow root; the one document-level touch is registering the bundled
+// Staatliches font via the FontFace API (see ensureBrandFont — @font-face does not work inside a
+// shadow root), which is deferred to first use so a bare script include stays inert (contract §2.2).
 import { define } from "./base-element";
 
 declare const __MOSNI_MARK_SVG__: string;
@@ -11,13 +13,30 @@ const LEAD: Record<string, string> = {
   continue: "Continue with",
 };
 
-const STYLE = `
-@font-face {
-  font-family: "MosniStaatliches";
-  font-style: normal;
-  font-weight: 400;
-  src: url(${__STAATLICHES_WOFF2__}) format("woff2");
+const FONT_FAMILY = "MosniStaatliches";
+
+// Register the bundled Staatliches face at the document level via the FontFace API.
+// An @font-face declared inside a shadow root's <style> is NOT honored by browsers
+// (long-standing Chrome/WebKit limitation), so the shadow-scoped rule silently failed and
+// the wordmark fell back to system-ui. The FontFace API is the only way to make a bundled
+// font usable inside a shadow root. This is the one minimal, deliberate document touch: it
+// adds a single font-family that nothing on the host page references (so nothing leaks/shifts),
+// and it is deferred to first element use (a bare script include stays inert per contract §2.2).
+function ensureBrandFont(): void {
+  if (typeof FontFace !== "function" || !document.fonts?.add) return;
+  for (const face of document.fonts) {
+    if (face.family === FONT_FAMILY) return; // double-load / multi-instance safe
+  }
+  const face = new FontFace(
+    FONT_FAMILY,
+    `url(${__STAATLICHES_WOFF2__}) format("woff2")`,
+    { style: "normal", weight: "400" },
+  );
+  document.fonts.add(face);
+  void face.load();
 }
+
+const STYLE = `
 :host {
   --lb-bg: #262626;
   --lb-bg-hover: #303030;
@@ -123,6 +142,7 @@ class MosniLoginButton extends HTMLElement {
   connectedCallback(): void {
     if (this.#button) return;
 
+    ensureBrandFont();
     const root = this.attachShadow({ mode: "open" });
 
     const style = document.createElement("style");

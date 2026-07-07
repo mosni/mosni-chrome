@@ -4,6 +4,7 @@ import { mkdir, rm, copyFile, writeFile, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { generateDocs } from "./docs.mjs";
+import subsetFont from "subset-font";
 
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const distDir = path.join(rootDir, "dist");
@@ -65,18 +66,28 @@ async function pngDataUri() {
   return "data:image/png;base64," + bytes.toString("base64");
 }
 
+// The standalone login button only ever renders the "Sign in with"/"Continue with" leads and the
+// MOSNIAUTH wordmark, so its bundled font copies are subset to Latin letters + space. This keeps the
+// self-contained bundle small (full Roboto latin alone is ~43 KB). Letters (not the exact glyphs) so
+// the lead wording stays freely editable without a font regression. The chrome's mosnicat.css keeps
+// the full fonts — this subsetting is login-button-only.
+const LOGIN_BUTTON_GLYPHS =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ";
+
+async function subsettedFontDataUri(file) {
+  const bytes = await readFile(path.join(rootDir, "src/assets/fonts", file));
+  const subset = await subsetFont(bytes, LOGIN_BUTTON_GLYPHS, {
+    targetFormat: "woff2",
+  });
+  return "data:font/woff2;base64," + subset.toString("base64");
+}
+
 async function staatlichesDataUri() {
-  const bytes = await readFile(
-    path.join(rootDir, "src/assets/fonts/staatliches-latin.woff2"),
-  );
-  return "data:font/woff2;base64," + bytes.toString("base64");
+  return subsettedFontDataUri("staatliches-latin.woff2");
 }
 
 async function robotoDataUri() {
-  const bytes = await readFile(
-    path.join(rootDir, "src/assets/fonts/roboto-latin.woff2"),
-  );
-  return "data:font/woff2;base64," + bytes.toString("base64");
+  return subsettedFontDataUri("roboto-latin.woff2");
 }
 
 async function markSvg() {

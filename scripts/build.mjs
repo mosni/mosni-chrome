@@ -17,7 +17,7 @@ const JS_ENTRIES = [
   ["login-button", "src/js/login-button.ts"],
 ];
 
-async function buildJs({ png, staatliches, roboto, mark }) {
+async function buildJs({ css, png, staatliches, roboto, mark }) {
   for (const [name, srcPath] of JS_ENTRIES) {
     await esbuildBuild({
       entryPoints: [path.join(rootDir, srcPath)],
@@ -27,6 +27,9 @@ async function buildJs({ png, staatliches, roboto, mark }) {
       format: "iife",
       target: "es2020",
       define: {
+        // Only mosnicat.ts (the bootstrap) references __MOSNICAT_CSS__, so the compiled CSS is
+        // embedded only there; the other entries don't reference it and stay lean.
+        __MOSNICAT_CSS__: JSON.stringify(css),
         __MOSNICAT_PNG__: JSON.stringify(png),
         __STAATLICHES_WOFF2__: JSON.stringify(staatliches),
         __ROBOTO_WOFF2__: JSON.stringify(roboto),
@@ -145,12 +148,12 @@ async function writeLoginButtonDemo() {
 async function main() {
   await rm(distDir, { recursive: true, force: true });
   await mkdir(distDir, { recursive: true });
-  await buildCss();
+  const css = await buildCss();
   const png = await pngDataUri();
   const staatliches = await staatlichesDataUri();
   const roboto = await robotoDataUri();
   const mark = await markSvg();
-  await buildJs({ png, staatliches, roboto, mark });
+  await buildJs({ css, png, staatliches, roboto, mark });
   await copyAssets();
   await generateDocs({ rootDir, distDir });
   await writeLoginButtonDemo();

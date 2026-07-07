@@ -64,16 +64,23 @@ async function testBootstrapInvariants() {
     fail("favicon link was not injected");
   }
 
-  const styleLinks = document.querySelectorAll("link#mosni-styles");
-  if (styleLinks.length !== 1) {
+  // Styles are injected as a single inline <style> synchronously during head parse (not a
+  // JS-inserted <link>, which does not reliably block the first paint — the cause of the recurring
+  // unstyled flash), so content paints styled; the second include must not add a duplicate.
+  const styleTags = document.querySelectorAll("style#mosni-styles");
+  if (styleTags.length !== 1) {
     fail(
-      `idempotency guard failed: expected exactly 1 link#mosni-styles after two includes, found ${styleLinks.length}`,
+      `idempotency guard failed: expected exactly 1 style#mosni-styles after two includes, found ${styleTags.length}`,
     );
   }
-  if (!styleLinks[0]?.getAttribute("href")?.endsWith("mosnicat.css")) {
-    fail("link#mosni-styles does not point at the mosnicat.css stylesheet");
+  if (!styleTags[0]?.textContent.includes("--mosni-purple")) {
+    fail(
+      "style#mosni-styles does not contain the bundled mosnicat CSS (missing --mosni-purple)",
+    );
   }
 
+  // The body-half (components + cat) is loaded as one sibling <script>, injected to run at
+  // end-of-body; the second include must not duplicate it either.
   const coreScripts = document.querySelectorAll("script#mosni-core");
   if (coreScripts.length !== 1) {
     fail(
@@ -85,13 +92,6 @@ async function testBootstrapInvariants() {
   }
 
   dom.window.close();
-
-  const css = await readFile(path.join(distDir, "mosnicat.css"), "utf8");
-  if (!css.includes("--mosni-purple")) {
-    fail(
-      "dist/mosnicat.css does not contain the bundled mosnicat CSS (missing --mosni-purple)",
-    );
-  }
 }
 
 async function testDocsExamplesRender() {

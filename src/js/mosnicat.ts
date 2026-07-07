@@ -1,3 +1,5 @@
+declare const __MOSNICAT_CSS__: string;
+
 (() => {
   const flags = window as {
     __MOSNI_BOOTSTRAPPED__?: boolean;
@@ -5,17 +7,21 @@
   if (flags.__MOSNI_BOOTSTRAPPED__) return;
   flags.__MOSNI_BOOTSTRAPPED__ = true;
 
-  // Assets always load from ui.mosni.dev, even when this bootstrap tag is served from
-  // mosni.dev — so the stylesheet + core + lazy chunks version together off one origin and
-  // mosni.dev only needs to host this single file.
+  // The core + lazy chunks always load from ui.mosni.dev, even when this bootstrap tag is served
+  // from mosni.dev — so they version together off one origin and mosni.dev only needs to host this
+  // single file.
   const base = "https://ui.mosni.dev/";
 
+  // The compiled CSS is inlined into this bootstrap and injected as a <style> synchronously during
+  // head parse, so styles are in the CSSOM before the body ever paints — a guaranteed no-flash, not
+  // the best-effort of a JS-inserted <link> (which does NOT reliably block the first paint, worst of
+  // all cross-origin — that fragility is what kept letting the unstyled flash back in). No second
+  // request, no cross-origin fetch. mosnicat.css is still emitted for explicit-<link> consumers.
   if (!document.getElementById("mosni-styles")) {
-    const link = document.createElement("link");
-    link.id = "mosni-styles";
-    link.rel = "stylesheet";
-    link.href = base + "mosnicat.css";
-    document.head.appendChild(link);
+    const style = document.createElement("style");
+    style.id = "mosni-styles";
+    style.textContent = __MOSNICAT_CSS__;
+    document.head.appendChild(style);
   }
 
   if (!document.querySelector('meta[name="viewport"]')) {

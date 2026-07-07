@@ -8,7 +8,6 @@ class MosniHeader extends MosniElement {
 
     this.classList.add("header");
 
-    const href = this.getAttribute("href");
     const brand = brandSlot.length ? brandSlot[0] : this.buildBrand();
 
     // Logo + brand travel together as one lockup (this is exordium's / ores' header look) so the
@@ -20,14 +19,13 @@ class MosniHeader extends MosniElement {
     }
     lockup.append(brand);
 
-    if (href) {
-      const link = document.createElement("a");
-      link.href = href;
-      link.append(lockup);
-      this.append(link);
-    } else {
-      this.append(lockup);
-    }
+    // The brand (logo + text together) is always a link home, defaulting to "/"; an explicit href
+    // overrides the target. The wrapping <a> is styled to inherit — it must not change the brand's
+    // look (see `.header > a:has(.header-brand)` in the CSS).
+    const link = document.createElement("a");
+    link.href = this.getAttribute("href") ?? "/";
+    link.append(lockup);
+    this.append(link);
 
     if (mid.length) {
       const midDiv = document.createElement("div");

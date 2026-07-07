@@ -38,6 +38,18 @@ declare const __MOSNICAT_CSS__: string;
   favicon.href = "https://mosni.dev/images/icon.png";
   document.head.appendChild(favicon);
 
+  // Start fetching the core now, in parallel with body parsing, rather than only at
+  // DOMContentLoaded. The core is cross-origin (ui.mosni.dev) and must still *execute* after the DOM
+  // is parsed (it upgrades light-DOM components that read their children), so it is injected at
+  // end-of-body below — but preloading it here means that injection is a cache hit and the component
+  // upgrade fires with minimal delay, shrinking how long the shell stays hidden (see the
+  // mosni-layout:not(:defined) guard in the CSS).
+  const preload = document.createElement("link");
+  preload.rel = "preload";
+  preload.as = "script";
+  preload.href = base + "mosnicat-core.js";
+  document.head.appendChild(preload);
+
   const loadCore = (): void => {
     if (document.getElementById("mosni-core")) return;
     const script = document.createElement("script");

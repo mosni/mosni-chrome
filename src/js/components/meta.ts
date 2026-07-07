@@ -39,8 +39,9 @@ export const componentMeta: ComponentMeta[] = [
         name: "href",
         type: "string",
         observed: false,
-        default: "—",
-        description: "If set, the brand is a link to it.",
+        default: "/",
+        description:
+          "Target for the brand link. The brand always links (logo + text together); defaults to / (home).",
       },
       {
         name: "tagline",
@@ -62,7 +63,7 @@ export const componentMeta: ComponentMeta[] = [
       {
         name: "brand",
         description:
-          "Rich brand content overriding brand/accent (wrapped in an <a href> if href is set).",
+          "Rich brand content overriding brand/accent (always wrapped in the brand link — see href).",
       },
       {
         name: "tagline",

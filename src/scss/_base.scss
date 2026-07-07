@@ -51,3 +51,14 @@ mosni-menu-item:not(:defined),
 mosni-toast:not(:defined) {
   display: none;
 }
+
+// The layout shell only becomes the sidebar+main grid once <mosni-layout> upgrades (its JS adds
+// .layout and generates the .layout-menu/.layout-main wrappers). Until mosnicat-core.js loads, the
+// raw slotted children render inline and left-aligned, then hop into the grid. Hiding the shell
+// until it is defined means it appears once, already in place, instead of visibly jumping — the
+// styles are already applied (inlined in the bootstrap), so this only gates the structural upgrade,
+// which mosnicat.js keeps brief by preloading the core. Scoped to the shell so authored content
+// components (.panel etc.) still show as the no-JS fallback (A2).
+mosni-layout:not(:defined) {
+  display: none;
+}

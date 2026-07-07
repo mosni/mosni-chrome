@@ -8,9 +8,12 @@
   color: var(--mosni-white);
 }
 
-.header > a:has(.brand),
-.header > a:has(.brand):hover,
-.header > a:has(.brand):focus {
+// The brand lockup is always wrapped in a link (home). Keep that link visually invisible — the brand
+// must look identical whether or not it links. Scoped to the lockup (.header-brand), so it also holds
+// for a custom brand slot that has no inner .brand element.
+.header > a:has(.header-brand),
+.header > a:has(.header-brand):hover,
+.header > a:has(.header-brand):focus {
   text-decoration: none;
   color: inherit;
 }

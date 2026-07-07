@@ -1,39 +1,48 @@
 // Standalone, self-contained brand login button (the "Log in with MOSNIAUTH" widget).
 // The repo's first Shadow-DOM element: it deliberately does NOT extend the light-DOM MosniElement.
 // Everything renders inside its shadow root; the one document-level touch is registering the bundled
-// Staatliches font via the FontFace API (see ensureBrandFont — @font-face does not work inside a
-// shadow root), which is deferred to first use so a bare script include stays inert (contract §2.2).
+// fonts via the FontFace API (see ensureFonts — @font-face does not work inside a shadow root),
+// which is deferred to first use so a bare script include stays inert (contract §2.2).
 import { define } from "./base-element";
 
 declare const __MOSNI_MARK_SVG__: string;
 declare const __STAATLICHES_WOFF2__: string;
+declare const __ROBOTO_WOFF2__: string;
 
 const LEAD: Record<string, string> = {
-  signin: "Log in with",
+  signin: "Sign in with",
   continue: "Continue with",
 };
 
-const FONT_FAMILY = "MosniStaatliches";
+const BRAND_FONT = "MosniStaatliches"; // display face for the MOSNIAUTH wordmark
+const BODY_FONT = "MosniRoboto"; // Roboto for the "Sign in with" lead
 
-// Register the bundled Staatliches face at the document level via the FontFace API.
+// Register the bundled faces at the document level via the FontFace API.
 // An @font-face declared inside a shadow root's <style> is NOT honored by browsers
-// (long-standing Chrome/WebKit limitation), so the shadow-scoped rule silently failed and
-// the wordmark fell back to system-ui. The FontFace API is the only way to make a bundled
-// font usable inside a shadow root. This is the one minimal, deliberate document touch: it
-// adds a single font-family that nothing on the host page references (so nothing leaks/shifts),
-// and it is deferred to first element use (a bare script include stays inert per contract §2.2).
-function ensureBrandFont(): void {
+// (long-standing Chrome/WebKit limitation), so a shadow-scoped rule silently fails and the
+// text falls back to system-ui. The FontFace API is the only way to make a bundled font usable
+// inside a shadow root. This is the one minimal, deliberate document touch: it adds font-families
+// nothing on the host page references (so nothing leaks/shifts) under Mosni-prefixed names so they
+// can't collide with a host's own "Roboto", and it is deferred to first element use so a bare
+// script include stays inert (contract §2.2).
+function ensureFonts(): void {
   if (typeof FontFace !== "function" || !document.fonts?.add) return;
-  for (const face of document.fonts) {
-    if (face.family === FONT_FAMILY) return; // double-load / multi-instance safe
+  const specs: Array<[string, string, FontFaceDescriptors]> = [
+    [BRAND_FONT, __STAATLICHES_WOFF2__, { style: "normal", weight: "400" }],
+    [BODY_FONT, __ROBOTO_WOFF2__, { style: "normal", weight: "100 900" }],
+  ];
+  const registered = new Set<string>();
+  for (const face of document.fonts) registered.add(face.family);
+  for (const [family, data, descriptors] of specs) {
+    if (registered.has(family)) continue; // double-load / multi-instance safe
+    const face = new FontFace(
+      family,
+      `url(${data}) format("woff2")`,
+      descriptors,
+    );
+    document.fonts.add(face);
+    void face.load();
   }
-  const face = new FontFace(
-    FONT_FAMILY,
-    `url(${__STAATLICHES_WOFF2__}) format("woff2")`,
-    { style: "normal", weight: "400" },
-  );
-  document.fonts.add(face);
-  void face.load();
 }
 
 const STYLE = `
@@ -69,7 +78,7 @@ const STYLE = `
   gap: 0.55em;
   margin: 0;
   padding: var(--lb-pad);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "MosniRoboto", system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size: var(--lb-font-size);
   font-weight: 500;
   line-height: 1.25;
@@ -142,7 +151,7 @@ class MosniLoginButton extends HTMLElement {
   connectedCallback(): void {
     if (this.#button) return;
 
-    ensureBrandFont();
+    ensureFonts();
     const root = this.attachShadow({ mode: "open" });
 
     const style = document.createElement("style");

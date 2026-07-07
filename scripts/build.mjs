@@ -16,7 +16,7 @@ const JS_ENTRIES = [
   ["login-button", "src/js/login-button.ts"],
 ];
 
-async function buildJs({ png, staatliches, mark }) {
+async function buildJs({ png, staatliches, roboto, mark }) {
   for (const [name, srcPath] of JS_ENTRIES) {
     await esbuildBuild({
       entryPoints: [path.join(rootDir, srcPath)],
@@ -28,6 +28,7 @@ async function buildJs({ png, staatliches, mark }) {
       define: {
         __MOSNICAT_PNG__: JSON.stringify(png),
         __STAATLICHES_WOFF2__: JSON.stringify(staatliches),
+        __ROBOTO_WOFF2__: JSON.stringify(roboto),
         __MOSNI_MARK_SVG__: JSON.stringify(mark),
       },
     });
@@ -67,6 +68,13 @@ async function pngDataUri() {
 async function staatlichesDataUri() {
   const bytes = await readFile(
     path.join(rootDir, "src/assets/fonts/staatliches-latin.woff2"),
+  );
+  return "data:font/woff2;base64," + bytes.toString("base64");
+}
+
+async function robotoDataUri() {
+  const bytes = await readFile(
+    path.join(rootDir, "src/assets/fonts/roboto-latin.woff2"),
   );
   return "data:font/woff2;base64," + bytes.toString("base64");
 }
@@ -129,8 +137,9 @@ async function main() {
   await buildCss();
   const png = await pngDataUri();
   const staatliches = await staatlichesDataUri();
+  const roboto = await robotoDataUri();
   const mark = await markSvg();
-  await buildJs({ png, staatliches, mark });
+  await buildJs({ png, staatliches, roboto, mark });
   await copyAssets();
   await generateDocs({ rootDir, distDir });
   await writeLoginButtonDemo();

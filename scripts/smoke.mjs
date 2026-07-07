@@ -28,8 +28,6 @@ async function testBootstrapInvariants() {
     "utf8",
   );
 
-  // A naive <head>-only include, twice, exercises all drop-in invariants: safe when document.body
-  // doesn't exist yet, and idempotent (the second copy must no-op).
   const html = `<!doctype html>
 <html>
   <head>
@@ -99,20 +97,17 @@ async function testBootstrapInvariants() {
 async function testDocsExamplesRender() {
   const indexHtml = await readFile(path.join(distDir, "index.html"), "utf8");
 
-  // One representative selector per docs/examples/ fragment.
   const exampleSelectors = {
     "header.html": ".header",
     "purple.html": ".purple",
     "panel.html": ".panel",
     "panel-input.html": '.panel input[type="email"]',
-    "btn.html": ".panel .btn",
-    "btn-block.html": ".panel .btn-block",
+    "btn.html": ".btn",
+    "btn-block.html": ".btn-block",
     "status.html": ".status",
     "layout.html": ".menu-entry",
     "text-container.html": ".text-container",
     "link.html": 'a[href="https://mosni.dev"]',
-    // This function parses dist/index.html with plain JSDOM (no runScripts) — components never
-    // upgrade here, so every component selector targets the raw authored tag, not a generated class.
     "mosni-header.html": "mosni-header[brand]",
     "mosni-layout.html": "mosni-layout mosni-menu-item[selected]",
     "mosni-menu.html": "mosni-menu-item[selected]",
@@ -153,8 +148,6 @@ async function testDocsExamplesRender() {
   dom.window.close();
 }
 
-// Inlines the built mosnicat-core.js (twice, so cat idempotency is exercised) and covers upgrade +
-// structure + one state reflection per component. jsdom gaps are stubbed once, up front.
 async function testComponents() {
   const coreSrc = await readFile(
     path.join(distDir, "mosnicat-core.js"),
@@ -183,9 +176,6 @@ async function testComponents() {
 
   await waitForDomContentLoaded(window);
 
-  // jsdom implements no <dialog> top-layer: neither showModal() nor close() exist. Stub them via
-  // the `open` IDL property jsdom does reflect; close() must fire the native `close` event so
-  // modal.ts's reflect-back listener runs as it would in a browser.
   if (typeof window.HTMLDialogElement.prototype.showModal !== "function") {
     window.HTMLDialogElement.prototype.showModal = function stubShowModal() {
       this.open = true;
@@ -201,7 +191,6 @@ async function testComponents() {
     if (!condition) fail(`testComponents: ${message}`);
   };
 
-  // The cat + its two eyes mount exactly once even though core.js is included twice.
   assertTrue(
     document.querySelectorAll("img#cat-image").length === 1,
     "cat: exactly 1 img#cat-image after two core includes",
@@ -211,7 +200,6 @@ async function testComponents() {
     "cat: exactly 2 canvas.eye after two core includes",
   );
 
-  // mosni-header
   {
     const el = document.createElement("mosni-header");
     el.setAttribute("brand", "a");
@@ -233,7 +221,6 @@ async function testComponents() {
       "mosni-header: .header-brand holds the default mosni-logo",
     );
 
-    // no-logo suppresses the default logo (exercised on a second instance).
     const bare = document.createElement("mosni-header");
     bare.setAttribute("brand", "a");
     bare.setAttribute("no-logo", "");
@@ -252,7 +239,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-layout
   {
     const el = document.createElement("mosni-layout");
     el.innerHTML =
@@ -273,7 +259,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-menu
   {
     const el = document.createElement("mosni-menu");
     el.setAttribute("label", "Nav");
@@ -291,7 +276,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-menu-item
   {
     const el = document.createElement("mosni-menu-item");
     el.setAttribute("title", "A");
@@ -323,7 +307,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-panel
   {
     const el = document.createElement("mosni-panel");
     el.setAttribute("heading", "Hi");
@@ -338,8 +321,6 @@ async function testComponents() {
     );
     assertTrue(!!el.querySelector("p"), "mosni-panel: <p> child preserved");
 
-    // An authored <h1> child suppresses the injected one (exercised on a second instance, since
-    // MosniElement renders once on connect).
     const el2 = document.createElement("mosni-panel");
     el2.setAttribute("heading", "Ignored");
     el2.innerHTML = "<h1>Authored</h1>";
@@ -351,7 +332,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-footer
   {
     const el = document.createElement("mosni-footer");
     el.innerHTML = 'Left text<a slot="links" href="/x">Link</a>';
@@ -371,7 +351,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-field
   {
     const el = document.createElement("mosni-field");
     el.setAttribute("label", "E");
@@ -408,7 +387,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-switch
   {
     const el = document.createElement("mosni-switch");
     el.setAttribute("label", "On");
@@ -428,7 +406,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-modal
   {
     const el = document.createElement("mosni-modal");
     el.setAttribute("heading", "M");
@@ -460,8 +437,6 @@ async function testComponents() {
       "mosni-modal: open=true calls the (stubbed) showModal()",
     );
 
-    // Native close (Esc) fires the dialog's own `close` event; assert the host's `open` reflects
-    // back. Calling dialog.close() directly (not el.close()) is what exercises that listener.
     dialog.close();
     assertTrue(
       !el.hasAttribute("open"),
@@ -469,7 +444,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-tooltip
   {
     const el = document.createElement("mosni-tooltip");
     el.setAttribute("text", "tip");
@@ -494,7 +468,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-toast
   {
     const handle = window.mosni?.toast?.("hi", { variant: "success" });
     assertTrue(
@@ -526,7 +499,6 @@ async function testComponents() {
       dismissEventFired,
       "mosni-toast: handle.dismiss() fires mosni-toast-dismiss",
     );
-    // The element detaches after its exit-fade timeout, not synchronously — wait it out.
     await new Promise((resolve) => setTimeout(resolve, 250));
     assertTrue(
       !host?.contains(toastEl),
@@ -534,7 +506,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-lightbox
   {
     const el = document.createElement("mosni-lightbox");
     el.innerHTML = '<img src="x.png">';
@@ -559,7 +530,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-code
   {
     const el = document.createElement("mosni-code");
     el.setAttribute("language", "ts");
@@ -578,7 +548,6 @@ async function testComponents() {
     );
   }
 
-  // mosni-accordion
   {
     const el = document.createElement("mosni-accordion");
     el.setAttribute("exclusive", "");
@@ -591,16 +560,12 @@ async function testComponents() {
       "mosni-accordion: each summary gained .accordion-chevron",
     );
     const [first, second] = el.querySelectorAll("details");
-    // jsdom does not implement the `name` IDL attribute on <details>, so accordion.ts's
-    // `details.name = x` lands as a plain instance property here — assert that rather than the
-    // reflected content attribute a real browser would show.
     assertTrue(
       !!first.name && first.name === second.name,
       "mosni-accordion: both <details> share one generated name (exclusive)",
     );
   }
 
-  // mosni-tabs (+ mosni-tab)
   {
     const el = document.createElement("mosni-tabs");
     el.innerHTML =
@@ -665,6 +630,101 @@ async function testComponents() {
   window.close();
 }
 
+async function testLoginButton() {
+  const src = await readFile(path.join(distDir, "login-button.js"), "utf8");
+  const html = `<!doctype html>
+<html><head><style>body{font-family:"Comic Sans MS";color:red;text-transform:uppercase}</style></head>
+<body><script>${src}</script><script>${src}</script></body></html>`;
+
+  const jsdomErrors = [];
+  const virtualConsole = new VirtualConsole();
+  virtualConsole.on("jsdomError", (err) => jsdomErrors.push(err));
+  const dom = new JSDOM(html, {
+    runScripts: "dangerously",
+    url: "https://example.com/",
+    virtualConsole,
+  });
+  const { window } = dom;
+  const { document } = window;
+
+  if (jsdomErrors.length > 0) {
+    fail(
+      `login-button: script threw: ${jsdomErrors.map((e) => e.message).join("; ")}`,
+    );
+    return;
+  }
+
+  if (document.querySelector('meta[name="viewport"]')) {
+    fail("login-button: injected a viewport meta");
+  }
+  if (
+    document.querySelector("#mosni-styles, #mosni-core, link[href*='mosnicat']")
+  ) {
+    fail("login-button: injected chrome styles/core");
+  }
+
+  const el = document.createElement("mosni-login-button");
+  document.body.appendChild(el);
+
+  if (!el.shadowRoot) {
+    fail("login-button: no shadow root");
+    window.close();
+    return;
+  }
+  const button = el.shadowRoot.querySelector("button.login");
+  if (!button) {
+    fail("login-button: no native <button> in the shadow root");
+    window.close();
+    return;
+  }
+  if (el.shadowRoot.querySelector(".brand .accent")?.textContent !== "AUTH") {
+    fail(
+      "login-button: purple 'AUTH' accent missing from the MOSNIAUTH wordmark",
+    );
+  }
+  if (
+    !el.shadowRoot.querySelector(".label")?.textContent?.includes("MOSNIAUTH")
+  ) {
+    fail("login-button: label does not read 'MOSNIAUTH'");
+  }
+
+  let seen = null;
+  document.addEventListener("mosni:login", (event) => {
+    seen = event;
+  });
+  button.click();
+  if (!seen) {
+    fail("login-button: click did not dispatch mosni:login to document");
+    window.close();
+    return;
+  }
+  if (seen.bubbles !== true || seen.composed !== true) {
+    fail("login-button: mosni:login must be { bubbles:true, composed:true }");
+  }
+  if (seen.cancelable !== false) {
+    fail("login-button: mosni:login must not be cancelable");
+  }
+
+  el.setAttribute("loading", "");
+  if (el.getAttribute("aria-busy") !== "true") {
+    fail("login-button: loading did not set aria-busy=true");
+  }
+  if (button.disabled !== true) {
+    fail("login-button: loading did not disable the button");
+  }
+  seen = null;
+  button.click();
+  if (seen) {
+    fail("login-button: loading state must suppress mosni:login");
+  }
+  el.removeAttribute("loading");
+  if (el.hasAttribute("aria-busy")) {
+    fail("login-button: removing loading did not clear aria-busy");
+  }
+
+  window.close();
+}
+
 async function testCssGuardScope() {
   const css = await readFile(path.join(distDir, "mosnicat.css"), "utf8");
 
@@ -684,9 +744,6 @@ async function testCssGuardScope() {
   }
 }
 
-// Evaluates the built mosnicat-prism.js chunk directly in jsdom, guarding the import-hoisting bug
-// where preassigning `window.Prism = { manual: true }` would discard the real Prism object
-// (dropping highlightElement) instead of just setting the flag on it.
 async function testPrismChunkManualMode() {
   const prismSrc = await readFile(
     path.join(distDir, "mosnicat-prism.js"),
@@ -731,7 +788,6 @@ async function testPrismChunkManualMode() {
     );
   }
 
-  // Let any deferred Prism auto-highlight callback run, and confirm manual=true kept it a no-op.
   await new Promise((resolve) => setTimeout(resolve, 50));
   if (jsdomErrors.length > 0) {
     fail(
@@ -748,6 +804,7 @@ async function main() {
   await testBootstrapInvariants();
   await testDocsExamplesRender();
   await testComponents();
+  await testLoginButton();
   await testPrismChunkManualMode();
   await testCssGuardScope();
   if (failed) {

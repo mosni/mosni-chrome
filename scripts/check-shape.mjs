@@ -12,6 +12,7 @@ const REQUIRED_ASSETS = [
   "mosnicat-core.js",
   "mosnicat-prism.js",
   "mosnicat-icons.js",
+  "login-button.js",
   "mosnicat.css",
   "mosnicat.png",
   "mosni.svg",
@@ -19,8 +20,6 @@ const REQUIRED_ASSETS = [
 const BARE_IMPORT_PATTERN = /\brequire\(\s*['"](?!\.)/;
 const BARE_ESM_IMPORT_PATTERN = /\bimport\s[^;]*?from\s*['"](?!\.)/;
 
-// Proves the core bundle never statically bundles Prism, and that the lazy chunk actually contains
-// the language data.
 const PRISM_MARKER = "languages.markup";
 const ICON_MARKER = "M12 15v5s3.03";
 
@@ -40,7 +39,7 @@ async function assertLeanCore() {
   const core = await readFile(path.join(distDir, "mosnicat-core.js"), "utf8");
   if (core.includes(PRISM_MARKER)) {
     throw new Error(
-      `mosnicat-core.js: core bundle must not statically bundle Prism (found '${PRISM_MARKER}' — Prism's language registry marker; Prism must live only in the lazy mosnicat-prism.js chunk)`,
+      `mosnicat-core.js: core bundle must not statically bundle Prism (found '${PRISM_MARKER}' - Prism's language registry marker; Prism must live only in the lazy mosnicat-prism.js chunk)`,
     );
   }
   const prismChunk = await readFile(
@@ -49,7 +48,7 @@ async function assertLeanCore() {
   );
   if (!prismChunk.includes(PRISM_MARKER)) {
     throw new Error(
-      `mosnicat-prism.js: expected Prism language data (missing '${PRISM_MARKER}') — the lazy chunk did not bundle Prism's languages`,
+      `mosnicat-prism.js: expected Prism language data (missing '${PRISM_MARKER}') - the lazy chunk did not bundle Prism's languages`,
     );
   }
 }
@@ -72,6 +71,33 @@ async function assertIconSplit() {
   }
 }
 
+async function assertLoginButtonSelfContained() {
+  const src = await readFile(path.join(distDir, "login-button.js"), "utf8");
+  const forbidden = [
+    "mosnicat.css",
+    "mosnicat-core",
+    "__MOSNI_BOOTSTRAPPED__",
+    'name="viewport"',
+  ];
+  for (const marker of forbidden) {
+    if (src.includes(marker)) {
+      throw new Error(
+        `login-button.js: must have zero global side effects but contains '${marker}' (contract §2.2)`,
+      );
+    }
+  }
+  if (!src.includes("mosni:login")) {
+    throw new Error(
+      "login-button.js: missing the CONTRACT event name 'mosni:login'",
+    );
+  }
+  if (!src.includes("attachShadow")) {
+    throw new Error(
+      "login-button.js: expected a shadow root (attachShadow) - must be fully encapsulated",
+    );
+  }
+}
+
 async function main() {
   const entries = await readdir(distDir);
   for (const file of REQUIRED_ASSETS) {
@@ -83,9 +109,11 @@ async function main() {
   await assertDependencyFree("mosnicat-core.js");
   await assertDependencyFree("mosnicat-prism.js");
   await assertDependencyFree("mosnicat-icons.js");
+  await assertDependencyFree("login-button.js");
   await assertLeanCore();
   await assertIconSplit();
-  console.log("check-shape: OK —", entries.join(", "));
+  await assertLoginButtonSelfContained();
+  console.log("check-shape: OK -", entries.join(", "));
 }
 
 main().catch((err) => {

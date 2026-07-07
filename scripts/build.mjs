@@ -13,9 +13,10 @@ const JS_ENTRIES = [
   ["mosnicat-core", "src/js/core.ts"],
   ["mosnicat-prism", "src/js/prism/index.ts"],
   ["mosnicat-icons", "src/js/icons-all/index.ts"],
+  ["login-button", "src/js/login-button.ts"],
 ];
 
-async function buildJs({ png }) {
+async function buildJs({ png, staatliches, mark }) {
   for (const [name, srcPath] of JS_ENTRIES) {
     await esbuildBuild({
       entryPoints: [path.join(rootDir, srcPath)],
@@ -26,6 +27,8 @@ async function buildJs({ png }) {
       target: "es2020",
       define: {
         __MOSNICAT_PNG__: JSON.stringify(png),
+        __STAATLICHES_WOFF2__: JSON.stringify(staatliches),
+        __MOSNI_MARK_SVG__: JSON.stringify(mark),
       },
     });
   }
@@ -61,16 +64,63 @@ async function pngDataUri() {
   return "data:image/png;base64," + bytes.toString("base64");
 }
 
+async function staatlichesDataUri() {
+  const bytes = await readFile(
+    path.join(rootDir, "src/assets/fonts/staatliches-latin.woff2"),
+  );
+  return "data:font/woff2;base64," + bytes.toString("base64");
+}
+
+async function markSvg() {
+  const raw = await readFile(
+    path.join(rootDir, "src/assets/mosni.svg"),
+    "utf8",
+  );
+  return raw.replace(/^[\s\S]*?(?=<svg)/, "").trim();
+}
+
 async function copyAssets() {
   await copyFile(
     path.join(rootDir, "src/assets/mosnicat.png"),
     path.join(distDir, "mosnicat.png"),
   );
-  // The mosni mark, served next to the bundle so <mosni-logo> resolves it off the same origin.
   await copyFile(
     path.join(rootDir, "src/assets/mosni.svg"),
     path.join(distDir, "mosni.svg"),
   );
+}
+
+async function writeLoginButtonDemo() {
+  const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>mosni login button - demo</title>
+  </head>
+  <body style="margin:0;font-family:system-ui">
+    <section style="background:#fff;color:#111;padding:2rem;display:flex;flex-direction:column;gap:1rem;align-items:flex-start">
+      <h1>on a light page</h1>
+      <mosni-login-button></mosni-login-button>
+      <mosni-login-button size="small"></mosni-login-button>
+      <mosni-login-button size="large"></mosni-login-button>
+      <mosni-login-button text="continue"></mosni-login-button>
+      <mosni-login-button loading></mosni-login-button>
+    </section>
+    <section style="background:#1b1b1b;color:#eee;padding:2rem;display:flex;flex-direction:column;gap:1rem;align-items:flex-start">
+      <h1>on a dark page</h1>
+      <mosni-login-button></mosni-login-button>
+    </section>
+    <p id="log" style="padding:2rem;margin:0">no event yet</p>
+    <script src="login-button.js"></script>
+    <script>
+      document.addEventListener("mosni:login", () => {
+        document.getElementById("log").textContent = "mosni:login received @ " + Date.now();
+      });
+    </script>
+  </body>
+</html>
+`;
+  await writeFile(path.join(distDir, "login-button.html"), html);
 }
 
 async function main() {
@@ -78,10 +128,13 @@ async function main() {
   await mkdir(distDir, { recursive: true });
   await buildCss();
   const png = await pngDataUri();
-  await buildJs({ png });
+  const staatliches = await staatlichesDataUri();
+  const mark = await markSvg();
+  await buildJs({ png, staatliches, mark });
   await copyAssets();
   await generateDocs({ rootDir, distDir });
-  console.log("build: OK — dist/ written");
+  await writeLoginButtonDemo();
+  console.log("build: OK - dist/ written");
 }
 
 main().catch((err) => {

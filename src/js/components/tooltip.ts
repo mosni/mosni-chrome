@@ -40,6 +40,31 @@ class MosniTooltip extends MosniElement {
       anchor.addEventListener("mouseleave", () => this.#hide());
       anchor.addEventListener("focus", () => this.#scheduleShow());
       anchor.addEventListener("blur", () => this.#hide());
+      // Touch has no hover state to show/hide from, so a tap toggles the tip directly instead of
+      // scheduling a hover-show. Gated on pointerType so this never fires for a mouse click (which
+      // already gets its tip from hover) or a keyboard activation (which already gets it from focus).
+      anchor.addEventListener("pointerup", (event) => {
+        if (!(event instanceof PointerEvent) || event.pointerType !== "touch") return;
+        this.#toggleTouch();
+      });
+    }
+
+    // Tapping anywhere outside the anchor/tip dismisses it - there is no mouseleave-equivalent on
+    // touch, so without this an open tip could only ever be closed by tapping the anchor again.
+    document.addEventListener("pointerdown", (event) => {
+      if (event.pointerType !== "touch" || !this.#tip || this.#tip.hidden) return;
+      const target = event.target;
+      if (target instanceof Node && (this.#anchor?.contains(target) || this.#tip.contains(target))) return;
+      this.#hide();
+    });
+  }
+
+  #toggleTouch(): void {
+    if (!this.#tip) return;
+    if (this.#tip.hidden) {
+      this.#show();
+    } else {
+      this.#hide();
     }
   }
 

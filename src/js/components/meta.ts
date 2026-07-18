@@ -301,6 +301,58 @@ export const componentMeta: ComponentMeta[] = [
     ],
   },
   {
+    tag: "mosni-chips",
+    summary:
+      "A filterable multi-select that ENHANCES authored checkboxes rather than replacing them - composes .chips. The checkboxes stay in the light DOM and remain the source of truth, so with no JS the consumer still gets a plain list that submits natively, and existing code reading those checkboxes keeps working. Adoption is markup-only: wrap them. display: block.",
+    attributes: [
+      {
+        name: "label",
+        type: "string",
+        observed: false,
+        default: "—",
+        description: "Optional caption above the selection.",
+      },
+      {
+        name: "placeholder",
+        type: "string",
+        observed: false,
+        default: "Filter…",
+        description: "Placeholder for the filter box.",
+      },
+      {
+        name: "filter-threshold",
+        type: "number",
+        observed: false,
+        default: "8",
+        description:
+          "Show the filter box only once there are at least this many options.",
+      },
+      {
+        name: "max-height",
+        type: "string",
+        observed: false,
+        default: "13rem",
+        description:
+          "Max height of the scrolling option list, so the panel cannot grow without bound.",
+      },
+      {
+        name: "empty-text",
+        type: "string",
+        observed: false,
+        default: "None selected",
+        description: "Shown in place of chips when nothing is selected.",
+      },
+    ],
+    slots: [],
+    events: [
+      {
+        name: "change",
+        description:
+          "Native change from the authored checkboxes; also dispatched when a chip's remove button clears one, so consumer listeners fire either way.",
+      },
+    ],
+  },
+  {
     tag: "mosni-modal",
     summary: "A dialog over a generated native <dialog> - composes .modal.",
     attributes: [

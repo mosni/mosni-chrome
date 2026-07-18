@@ -70,6 +70,7 @@ class equivalent render pixel-identically.
 | `<mosni-footer>`                     | The page footer.                                                                   | `.footer`                                 |
 | `<mosni-field>`                      | A labelled form control with help/error text.                                      | `.field`                                  |
 | `<mosni-switch>`                     | An enhance-or-generate boolean toggle.                                             | `.switch`                                 |
+| `<mosni-chips>`                      | A filterable multi-select that enhances authored checkboxes.                       | `.chips`                                  |
 | `<mosni-modal>`                      | A dialog over a generated native `<dialog>`.                                       | `.modal`                                  |
 | `<mosni-tooltip>`                    | A hover/focus tip appended to `document.body`.                                     | `.tooltip`                                |
 | `<mosni-toast>`                      | The declarative secondary path onto the imperative `window.mosni.toast(...)` host. | `.toast`                                  |

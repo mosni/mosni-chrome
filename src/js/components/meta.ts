@@ -303,7 +303,7 @@ export const componentMeta: ComponentMeta[] = [
   {
     tag: "mosni-chips",
     summary:
-      "A filterable multi-select that ENHANCES authored checkboxes rather than replacing them - composes .chips. The checkboxes stay in the light DOM and remain the source of truth, so with no JS the consumer still gets a plain list that submits natively, and existing code reading those checkboxes keeps working. Adoption is markup-only: wrap them. display: block.",
+      "A filterable multi-select that ENHANCES authored checkboxes rather than replacing them - composes .chips, and builds on <mosni-switch> (each authored checkbox is adopted by one, reusing the same input element) and <mosni-field> (the filter box). The checkboxes stay in the light DOM and remain the source of truth, so with no JS the consumer still gets a plain list that submits natively, and existing code reading those checkboxes keeps working. Adoption is markup-only: wrap them. display: block.",
     attributes: [
       {
         name: "label",

@@ -12,7 +12,7 @@ mosni-chips {
 
 .chips-label {
   font-size: 0.85rem;
-  color: var(--mosni-muted);
+  color: var(--mosni-text-muted);
 }
 
 .chips-selected {
@@ -27,8 +27,68 @@ mosni-chips {
   font-size: 0.85rem;
 }
 
+// One pill carrying the label AND its dismiss control. Deliberately NOT `.badge` + a separate
+// button: that reads as two objects, and a bare <button> picks up the global button styling.
+// Padding is symmetric apart from the smaller inline-end inset, which compensates for the `x`
+// glyph's own side bearing so the pill looks evenly padded rather than measuring evenly.
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.4rem 0.15rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--mosni-purple-pale);
+  background: transparent;
+  border: 1px solid var(--mosni-purple-pale);
+  border-radius: 999px;
+}
+
+.chip-text {
+  line-height: 1.4;
+}
+
+.chip-x {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1em;
+  height: 1.1em;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: 1.1em;
+  line-height: 1;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0.65;
+}
+
+.chip-x:hover,
+.chip-x:focus-visible {
+  opacity: 1;
+  background: color-mix(in srgb, var(--mosni-purple-pale) 22%, transparent);
+}
+
 .chips-filter {
   width: 100%;
+}
+
+// mosni-field always renders a .field-label, even for an empty label. Ours is intentionally
+// unlabelled - .chips-label above names the group and the placeholder says the rest - so suppress
+// it explicitly rather than leaving a blank line of vertical rhythm. Not `:empty`, which is
+// unreliable against the empty text node mosni-field appends.
+.chips mosni-field .field-label {
+  display: none;
+}
+
+.chips mosni-field {
+  margin: 0;
 }
 
 // The scroll container is the whole point of this element: the option list must not grow the panel
@@ -36,30 +96,18 @@ mosni-chips {
 .chips-options {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 0.15rem 0.75rem;
+  gap: 0.1rem 0.75rem;
   overflow-y: auto;
-  padding-right: 0.25rem;
-  border: 1px solid var(--mosni-border);
+  border: 1px solid var(--mosni-border-muted);
   border-radius: var(--mosni-radius, 6px);
   padding: 0.5rem;
-  background: var(--mosni-surface);
 }
 
-.chips-options label {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.15rem 0;
-  font-size: 0.9rem;
-  color: var(--mosni-white);
-  cursor: pointer;
-}
-
-.chips-options label[hidden] {
+.chips-options mosni-switch[hidden] {
   display: none;
 }
 
-// A single visible row means the grid's minmax leaves an odd gap; collapse to one column.
-.chips-options:has(label:only-child) {
+// A single visible option leaves an odd gap under the grid's minmax; collapse to one column.
+.chips-options:has(mosni-switch:only-child) {
   grid-template-columns: 1fr;
 }

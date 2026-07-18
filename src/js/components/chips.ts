@@ -10,10 +10,15 @@ import { MosniElement, define } from "../base-element";
 //   - any existing code that reads those checkboxes (`querySelectorAll("[data-x]").checked`) keeps
 //     working untouched, so adopting this element is a markup-only change.
 //
+// Composes the library rather than re-inventing it: each authored checkbox is adopted by a
+// `<mosni-switch>` (which reuses the very same input element), and the filter box is a
+// `<mosni-field>`. The chip itself is a single pill carrying its own dismiss control.
+//
 // Attributes: `label`, `placeholder`, `filter-threshold` (hide the filter box below N options,
-// default 8), `max-height` (scroll container, default 13rem).
+// default 8), `max-height` (scroll container, default 13rem), `empty-text`.
 class MosniChips extends MosniElement {
   #boxes: HTMLInputElement[] = [];
+  #labels: string[] = [];
   #chips: HTMLElement | null = null;
 
   protected render(): void {
@@ -29,10 +34,24 @@ class MosniChips extends MosniElement {
     const threshold = Number(this.getAttribute("filter-threshold") ?? "8");
     const maxHeight = this.getAttribute("max-height") ?? "13rem";
 
-    // Each checkbox's own label element is the row we show/hide when filtering.
-    const rows = this.#boxes.map(
-      (box) => box.closest("label") ?? box.parentElement ?? box,
+    // Each authored checkbox becomes a <mosni-switch>: the switch adopts the SAME input element
+    // (its render() looks for an authored input[type=checkbox] inside itself and uses it rather
+    // than generating one), so the checkbox stays the source of truth and every reference here
+    // stays valid. Built detached, connected once below, so each switch renders exactly once.
+    // Captured before the authored <label> wrappers are unwrapped below - after that the only
+    // label in scope is the one mosni-switch generates.
+    const labels = this.#boxes.map((box) =>
+      (box.value || box.closest("label")?.textContent || "").trim(),
     );
+    this.#labels = labels;
+    const options = this.#boxes.map((box, i) => {
+      const option = document.createElement("mosni-switch");
+      option.setAttribute("label", labels[i]!);
+      // Unwrap the authored <label> - the switch renders its own, and a nested label is invalid.
+      box.closest("label")?.replaceWith(box);
+      option.append(box);
+      return option;
+    });
 
     const wrap = document.createElement("div");
     wrap.className = "chips";
@@ -59,23 +78,27 @@ class MosniChips extends MosniElement {
       for (const evt of ["input", "search"]) {
         filter.addEventListener(evt, () => {
           const q = filter!.value.trim().toLowerCase();
-          rows.forEach((row, i) => {
+          options.forEach((option, i) => {
             const text = (
               this.#boxes[i]!.value ||
-              row.textContent ||
+              labels[i] ||
               ""
             ).toLowerCase();
-            (row as HTMLElement).hidden = q !== "" && !text.includes(q);
+            option.hidden = q !== "" && !text.includes(q);
           });
         });
       }
-      wrap.append(filter);
+      // Wrapped in <mosni-field> so the filter is a first-class form control here rather than a
+      // bare input that only looks right by accident.
+      const field = document.createElement("mosni-field");
+      field.append(filter);
+      wrap.append(field);
     }
 
     const list = document.createElement("div");
     list.className = "chips-options";
     list.style.maxHeight = maxHeight;
-    for (const row of rows) list.append(row);
+    for (const option of options) list.append(option);
     wrap.append(list);
 
     for (const box of this.#boxes) {
@@ -93,7 +116,9 @@ class MosniChips extends MosniElement {
     if (!chips) return;
     chips.textContent = "";
 
-    const selected = this.#boxes.filter((b) => b.checked);
+    const selected = this.#boxes
+      .map((box, i) => ({ box, label: this.#labels[i] ?? box.value }))
+      .filter((entry) => entry.box.checked);
     if (selected.length === 0) {
       const empty = document.createElement("span");
       empty.className = "chips-empty muted";
@@ -102,14 +127,15 @@ class MosniChips extends MosniElement {
       return;
     }
 
-    for (const box of selected) {
+    for (const { box, label } of selected) {
+      // One pill containing the label AND the dismiss control - NOT a badge with a button beside
+      // it, which reads as two separate objects and inherits the global button styling.
       const chip = document.createElement("span");
       chip.className = "chip";
 
       const text = document.createElement("span");
-      text.className = "badge";
-      text.textContent =
-        box.value || (box.closest("label")?.textContent ?? "").trim();
+      text.className = "chip-text";
+      text.textContent = label;
       chip.append(text);
 
       const remove = document.createElement("button");

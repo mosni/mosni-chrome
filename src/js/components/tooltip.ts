@@ -12,6 +12,7 @@ class MosniTooltip extends MosniElement {
   #anchor: Element | null = null;
   #usingTipSlot = false;
   #showTimer: number | undefined;
+  #outsideTapHandler: ((event: PointerEvent) => void) | undefined;
 
   protected render(): void {
     const tipSlot = takeSlot(this, "tip");
@@ -51,12 +52,39 @@ class MosniTooltip extends MosniElement {
 
     // Tapping anywhere outside the anchor/tip dismisses it - there is no mouseleave-equivalent on
     // touch, so without this an open tip could only ever be closed by tapping the anchor again.
-    document.addEventListener("pointerdown", (event) => {
+    // Kept in a field so disconnectedCallback can unregister it: this is a document-level listener
+    // owned by a per-instance element, so without removal every discarded tooltip leaves one behind.
+    this.#outsideTapHandler = (event: PointerEvent) => {
       if (event.pointerType !== "touch" || !this.#tip || this.#tip.hidden) return;
       const target = event.target;
       if (target instanceof Node && (this.#anchor?.contains(target) || this.#tip.contains(target))) return;
       this.#hide();
-    });
+    };
+    document.addEventListener("pointerdown", this.#outsideTapHandler);
+  }
+
+  // The tip lives on document.body, not inside this element, and the dismiss listener lives on
+  // document - so neither is collected when the host element is discarded. A consumer that replaces a
+  // subtree containing tooltips (auth's /admin swaps its whole links table on every filter toggle and
+  // after every generate) would otherwise accumulate one orphaned tip div and one document listener
+  // per tooltip per swap, unbounded, for the life of the page.
+  disconnectedCallback(): void {
+    // Relocating an element fires disconnect then connect, so the teardown is deferred one task and
+    // skipped if the element came back - otherwise merely moving a tooltip would destroy its tip.
+    window.setTimeout(() => {
+      if (this.isConnected) return;
+      if (this.#showTimer !== undefined) {
+        window.clearTimeout(this.#showTimer);
+        this.#showTimer = undefined;
+      }
+      if (this.#outsideTapHandler) {
+        document.removeEventListener("pointerdown", this.#outsideTapHandler);
+        this.#outsideTapHandler = undefined;
+      }
+      this.#tip?.remove();
+      this.#tip = undefined;
+      this.#anchor = null;
+    }, 0);
   }
 
   #toggleTouch(): void {

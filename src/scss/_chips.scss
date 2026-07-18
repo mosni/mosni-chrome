@@ -1,0 +1,65 @@
+@use "shared";
+
+mosni-chips {
+  display: block;
+}
+
+.chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chips-label {
+  font-size: 0.85rem;
+  color: var(--mosni-muted);
+}
+
+.chips-selected {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.9rem;
+}
+
+.chips-empty {
+  font-size: 0.85rem;
+}
+
+.chips-filter {
+  width: 100%;
+}
+
+// The scroll container is the whole point of this element: the option list must not grow the panel
+// without bound as the number of options grows.
+.chips-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.15rem 0.75rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  border: 1px solid var(--mosni-border);
+  border-radius: var(--mosni-radius, 6px);
+  padding: 0.5rem;
+  background: var(--mosni-surface);
+}
+
+.chips-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.15rem 0;
+  font-size: 0.9rem;
+  color: var(--mosni-white);
+  cursor: pointer;
+}
+
+.chips-options label[hidden] {
+  display: none;
+}
+
+// A single visible row means the grid's minmax leaves an odd gap; collapse to one column.
+.chips-options:has(label:only-child) {
+  grid-template-columns: 1fr;
+}

@@ -5,6 +5,7 @@ import "./panel";
 import "./footer";
 import "./field";
 import "./switch";
+import "./chips";
 import "./modal";
 import "./tooltip";
 import "./toast";

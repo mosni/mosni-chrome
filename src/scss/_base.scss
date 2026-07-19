@@ -62,3 +62,9 @@ mosni-toast:not(:defined) {
 mosni-layout:not(:defined) {
   display: none;
 }
+
+
+*::selection {
+  background: #996bef;
+  color: #ffffff;
+}

@@ -411,6 +411,58 @@ export const componentMeta: ComponentMeta[] = [
     events: [],
   },
   {
+    tag: "mosni-dropdown",
+    summary:
+      "The overflow-menu primitive - a popover of <mosni-dropdown-item> actions behind a trigger button. Not mosni-menu (that's site nav, not a popover) - composes .dropdown.",
+    attributes: [
+      {
+        name: "label",
+        type: "string",
+        observed: false,
+        default: "—",
+        description: "Trigger button text; mirrored property.",
+      },
+    ],
+    slots: [],
+    events: [
+      {
+        name: "mosni-dropdown-select",
+        description: "Bubbles when an item is chosen; detail: { value }.",
+      },
+    ],
+  },
+  {
+    tag: "mosni-dropdown-item",
+    summary:
+      "A single dropdown action, generated into a role=menuitem button. display: contents.",
+    attributes: [
+      {
+        name: "value",
+        type: "string",
+        observed: false,
+        default: "—",
+        description:
+          "Value carried by mosni-dropdown-select; mirrored property.",
+      },
+      {
+        name: "variant",
+        type: "string",
+        observed: true,
+        default: "—",
+        description: "danger for a destructive action; mirrored property.",
+      },
+      {
+        name: "disabled",
+        type: "boolean",
+        observed: true,
+        default: "false",
+        description: "Disabled; mirrored property.",
+      },
+    ],
+    slots: [],
+    events: [],
+  },
+  {
     tag: "mosni-icon",
     summary:
       "A public by-name Lucide icon element backed by the lazy mosnicat-icons.js chunk.",

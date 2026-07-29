@@ -164,9 +164,20 @@ class MosniDropdown extends MosniElement {
     if (!menu || !trigger) return;
     const rect = trigger.getBoundingClientRect();
     const menuWidth = menu.offsetWidth;
+    const menuHeight = menu.offsetHeight;
     const left = Math.min(rect.left, window.innerWidth - menuWidth - 8);
+    // A trigger near the bottom of the viewport (a table's last rows, say) can leave no room to
+    // open downward - position: fixed means there is no scrolling it into view the way a normal-
+    // flow element would be, so a menu that doesn't fit below the trigger opens ABOVE it instead.
+    // Found the same way the clipping bug was: re-running this session's own visual-check.mjs after
+    // the previous fix - "Delete" (the last item) was simply unreachable, off the bottom of the
+    // viewport, on a row nowhere near the actual end of the page.
+    const fitsBelow = rect.bottom + 6 + menuHeight <= window.innerHeight;
+    const top = fitsBelow
+      ? rect.bottom + 6
+      : Math.max(8, rect.top - menuHeight - 6);
     menu.style.position = "fixed";
-    menu.style.top = `${rect.bottom + 6}px`;
+    menu.style.top = `${top}px`;
     menu.style.left = `${Math.max(8, left)}px`;
   }
 

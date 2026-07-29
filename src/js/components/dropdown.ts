@@ -190,14 +190,21 @@ class MosniDropdown extends MosniElement {
     this.#positionMenu();
     trigger.setAttribute("aria-expanded", "true");
 
+    // preventScroll: true, not just deferring the listeners below - #positionMenu() already placed
+    // the menu fully within the viewport, so focus() has nothing legitimate to scroll for, but a
+    // touch/mobile-emulated browser still does its own scroll-into-view pass on focus regardless
+    // (verified: desktop Chromium doesn't visibly do this, but Playwright's iPhone 13 emulation does
+    // a real, ANIMATED scroll that keeps firing scroll events well past a deferred tick - long
+    // enough to still trip the scroll-close listener below even with the setTimeout already guarding
+    // against the synchronous case). Found by this session's own visual-check.mjs: desktop opened
+    // correctly, iPhone 13 mobile closed the menu instantly, every run.
     this.#items()
       .find((button) => !button.disabled)
-      ?.focus();
+      ?.focus({ preventScroll: true });
 
-    // Both deferred a tick, same reason: focus() above can itself trigger a scroll-into-view (the
-    // freshly-positioned menu may sit partly outside the viewport), and the click that opened this
-    // menu is still bubbling toward document - attaching either listener synchronously risks the
-    // menu closing itself via its own opening, not a real dismissal.
+    // Both deferred a tick, same reason: the click that opened this menu is still bubbling toward
+    // document - attaching either listener synchronously risks the menu closing itself via its own
+    // opening, not a real dismissal.
     window.setTimeout(() => {
       if (!this.#isOpen()) return;
       this.#outsideClickHandler = (event: PointerEvent) => {

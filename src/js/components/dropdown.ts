@@ -179,8 +179,14 @@ class MosniDropdown extends MosniElement {
     this.#positionMenu();
     trigger.setAttribute("aria-expanded", "true");
 
-    // Deferred a tick so the same click that opened the menu (which is still bubbling toward
-    // document) doesn't immediately dismiss it.
+    this.#items()
+      .find((button) => !button.disabled)
+      ?.focus();
+
+    // Both deferred a tick, same reason: focus() above can itself trigger a scroll-into-view (the
+    // freshly-positioned menu may sit partly outside the viewport), and the click that opened this
+    // menu is still bubbling toward document - attaching either listener synchronously risks the
+    // menu closing itself via its own opening, not a real dismissal.
     window.setTimeout(() => {
       if (!this.#isOpen()) return;
       this.#outsideClickHandler = (event: PointerEvent) => {
@@ -189,21 +195,17 @@ class MosniDropdown extends MosniElement {
         this.#close();
       };
       document.addEventListener("pointerdown", this.#outsideClickHandler);
+
+      // position: fixed no longer moves with the trigger when an ancestor (e.g. .table-scroll, or
+      // the page itself) scrolls - closing on scroll is simpler and more robust than re-tracking
+      // position continuously, and matches how a click elsewhere already dismisses the menu.
+      // Capture: true so this fires for a scroll on ANY scrollable ancestor, not just window.
+      this.#scrollHandler = () => this.#close();
+      window.addEventListener("scroll", this.#scrollHandler, {
+        capture: true,
+        passive: true,
+      });
     }, 0);
-
-    // position: fixed no longer moves with the trigger when an ancestor (e.g. .table-scroll, or the
-    // page itself) scrolls - closing on scroll is simpler and more robust than re-tracking position
-    // continuously, and matches how a click elsewhere already dismisses the menu. Capture: true so
-    // this fires for a scroll on ANY scrollable ancestor, not just window.
-    this.#scrollHandler = () => this.#close();
-    window.addEventListener("scroll", this.#scrollHandler, {
-      capture: true,
-      passive: true,
-    });
-
-    this.#items()
-      .find((button) => !button.disabled)
-      ?.focus();
   }
 
   #close(): void {

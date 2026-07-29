@@ -5,6 +5,20 @@
   border-collapse: collapse;
 }
 
+// Promoted from scripts/docs.mjs's own page-local <style> (a real, already-deployed pattern: every
+// generated attribute/slot/event table on the docs site wraps in this exact class already - see
+// `<div class="table-scroll"><table class="table">` there). It only ever lived in that one page's
+// inline styles, so it was never available to mosnicat.css's actual consumers (mosni/files included) -
+// this is the same one-line rule, just where every caller can reach it. A wrapping div, not a property
+// on `.table` itself, so it changes nothing for a caller that doesn't opt in: the table's own box,
+// column layout and every other default stay exactly as they were. Backstop against a page ever
+// widening because of a table (table-col-secondary below is the preferred fix for the common case -
+// losing a column beats a scrollbar - but this covers what column-hiding alone doesn't: a caller that
+// doesn't mark enough columns secondary, or content, like a long unbroken filename, that never shrinks).
+.table-scroll {
+  overflow-x: auto;
+}
+
 .table th {
   padding: 0.5rem 0.75rem;
   font-size: 0.7rem;

@@ -1,27 +1,32 @@
-<table class="table interactive">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th class="table-col-secondary">Role</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Hannah</td>
-      <td class="table-col-secondary">Hello</td>
-      <td>Active</td>
-    </tr>
-    <tr>
-      <td>Second row</td>
-      <td class="table-col-secondary">Hi</td>
-      <td>Active</td>
-    </tr>
-  </tbody>
-</table>
+<div class="table-scroll">
+  <table class="table interactive">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th class="table-col-secondary">Role</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Hannah</td>
+        <td class="table-col-secondary">Hello</td>
+        <td>Active</td>
+      </tr>
+      <tr>
+        <td>Second row</td>
+        <td class="table-col-secondary">Hi</td>
+        <td>Active</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 <p>
   <code>.table-col-secondary</code> on both a column's
   <code>&lt;th&gt;</code> and its <code>&lt;td&gt;</code>s hides that column
   below 480px, rather than letting the table (or the page) scroll sideways.
-  Resize below 480px to see the "Role" column above disappear.
+  Resize below 480px to see the "Role" column above disappear. The
+  <code>.table-scroll</code> wrapper is the backstop for whatever
+  <code>.table-col-secondary</code> doesn't fully cover - the table can still
+  scroll on its own, but the page it's on never widens because of it.
 </p>

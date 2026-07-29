@@ -2,17 +2,26 @@
   <thead>
     <tr>
       <th>Name</th>
-      <th>Role</th>
+      <th class="table-col-secondary">Role</th>
+      <th>Status</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>Hannah</td>
-      <td>Hello</td>
+      <td class="table-col-secondary">Hello</td>
+      <td>Active</td>
     </tr>
     <tr>
       <td>Second row</td>
-      <td>Hi</td>
+      <td class="table-col-secondary">Hi</td>
+      <td>Active</td>
     </tr>
   </tbody>
 </table>
+<p>
+  <code>.table-col-secondary</code> on both a column's
+  <code>&lt;th&gt;</code> and its <code>&lt;td&gt;</code>s hides that column
+  below 480px, rather than letting the table (or the page) scroll sideways.
+  Resize below 480px to see the "Role" column above disappear.
+</p>

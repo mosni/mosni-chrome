@@ -1,3 +1,5 @@
+@use "shared";
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -21,4 +23,15 @@
 
 .table.interactive tbody tr:hover {
   background: var(--mosni-surface-hover);
+}
+
+// E4.1 Wave 0.5 (D-79): a phone-width table that keeps every column scrolls the whole PAGE sideways,
+// which is worse than losing a column - so a secondary column (the calling app's call, since column
+// count/order is app-specific) hides at phone width instead of forcing overflow-x on anything. A column
+// opts in by carrying `.table-col-secondary` on both its <th> and its <td>s.
+@media (max-width: shared.$bp-phone) {
+  .table th.table-col-secondary,
+  .table td.table-col-secondary {
+    display: none;
+  }
 }

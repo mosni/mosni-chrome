@@ -75,6 +75,7 @@ class MosniDropdown extends MosniElement {
   #menu: HTMLDivElement | undefined;
   #outsideClickHandler: ((event: PointerEvent) => void) | undefined;
   #scrollHandler: (() => void) | undefined;
+  #triggerRectAtOpen: DOMRect | undefined;
 
   protected render(): void {
     this.classList.add("dropdown");
@@ -189,22 +190,19 @@ class MosniDropdown extends MosniElement {
     menu.hidden = false;
     this.#positionMenu();
     trigger.setAttribute("aria-expanded", "true");
+    this.#triggerRectAtOpen = trigger.getBoundingClientRect();
 
-    // preventScroll: true, not just deferring the listeners below - #positionMenu() already placed
-    // the menu fully within the viewport, so focus() has nothing legitimate to scroll for, but a
-    // touch/mobile-emulated browser still does its own scroll-into-view pass on focus regardless
-    // (verified: desktop Chromium doesn't visibly do this, but Playwright's iPhone 13 emulation does
-    // a real, ANIMATED scroll that keeps firing scroll events well past a deferred tick - long
-    // enough to still trip the scroll-close listener below even with the setTimeout already guarding
-    // against the synchronous case). Found by this session's own visual-check.mjs: desktop opened
-    // correctly, iPhone 13 mobile closed the menu instantly, every run.
+    // preventScroll: true - #positionMenu() already placed the menu fully within the viewport, so
+    // focus() has nothing legitimate to scroll for. It does NOT fully stop a touch/mobile browser's
+    // own scroll-into-view pass on focus though (measured directly: Playwright's iPhone 13 emulation
+    // still fires two real scroll events ~80ms after open, preventScroll notwithstanding) - #onScroll
+    // below is what actually handles that, not this option. Kept anyway since it's free and correct.
     this.#items()
       .find((button) => !button.disabled)
       ?.focus({ preventScroll: true });
 
-    // Both deferred a tick, same reason: the click that opened this menu is still bubbling toward
-    // document - attaching either listener synchronously risks the menu closing itself via its own
-    // opening, not a real dismissal.
+    // Deferred a tick so the same click that opened the menu (still bubbling toward document)
+    // doesn't immediately dismiss it via the outside-click listener.
     window.setTimeout(() => {
       if (!this.#isOpen()) return;
       this.#outsideClickHandler = (event: PointerEvent) => {
@@ -215,15 +213,39 @@ class MosniDropdown extends MosniElement {
       document.addEventListener("pointerdown", this.#outsideClickHandler);
 
       // position: fixed no longer moves with the trigger when an ancestor (e.g. .table-scroll, or
-      // the page itself) scrolls - closing on scroll is simpler and more robust than re-tracking
-      // position continuously, and matches how a click elsewhere already dismisses the menu.
-      // Capture: true so this fires for a scroll on ANY scrollable ancestor, not just window.
-      this.#scrollHandler = () => this.#close();
+      // the page itself) scrolls, so this exists to close the menu rather than leave it visually
+      // detached. NOT deferred against a self-inflicted scroll by timing (a scroll event firing is
+      // not proof anything actually moved - see #onScroll). Capture: true so this fires for a scroll
+      // on ANY scrollable ancestor, not just window.
+      this.#scrollHandler = () => this.#onScroll();
       window.addEventListener("scroll", this.#scrollHandler, {
         capture: true,
         passive: true,
       });
     }, 0);
+  }
+
+  // A scroll EVENT firing is not proof the trigger actually moved. focus({preventScroll: true}) in
+  // #open() still doesn't stop a touch/mobile browser's own scroll-into-view pass in practice
+  // (measured: Playwright's iPhone 13 emulation fires real scroll events ~80ms after open even with
+  // preventScroll set) - long enough to race past any "defer the listener a tick" guard under real
+  // load, closing a menu that never actually needed to move. Comparing the trigger's CURRENT position
+  // to its position at open time sidesteps the race entirely: only a scroll that measurably moved the
+  // trigger is a reason to close, regardless of why the event fired or when the listener attached.
+  #onScroll(): void {
+    const trigger = this.#trigger;
+    const baseline = this.#triggerRectAtOpen;
+    if (!trigger || !baseline) {
+      this.#close();
+      return;
+    }
+    const rect = trigger.getBoundingClientRect();
+    if (
+      Math.abs(rect.top - baseline.top) < 2 &&
+      Math.abs(rect.left - baseline.left) < 2
+    )
+      return;
+    this.#close();
   }
 
   #close(): void {
@@ -246,6 +268,7 @@ class MosniDropdown extends MosniElement {
       });
       this.#scrollHandler = undefined;
     }
+    this.#triggerRectAtOpen = undefined;
     trigger?.focus();
   }
 

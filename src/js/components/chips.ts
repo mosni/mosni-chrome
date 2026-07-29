@@ -157,6 +157,16 @@ class MosniChips extends MosniElement {
   get value(): string[] {
     return this.#boxes.filter((b) => b.checked).map((b) => b.value);
   }
+
+  // React 19 assigns JSX props as property writes once the element upgrades - a getter with no
+  // setter throws on that assignment (this took production down once, see mosnicat.md). There's no
+  // single attribute to mirror here (value is derived from the checkboxes), so the write-through
+  // check/uncheck the boxes it names instead of just swallowing the assignment.
+  set value(values: string[]) {
+    const wanted = new Set(values);
+    for (const box of this.#boxes) box.checked = wanted.has(box.value);
+    this.#syncChips();
+  }
 }
 
 define("mosni-chips", MosniChips);

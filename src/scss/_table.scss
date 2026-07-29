@@ -34,4 +34,14 @@
   .table td.table-col-secondary {
     display: none;
   }
+
+  // Hiding secondary columns alone wasn't enough on a real row (icon + name + a status indicator +
+  // a trailing dropdown-trigger button, measured against mosni/files' table): the default 0.75rem
+  // horizontal cell padding across even 3-4 remaining columns was still enough by itself to overflow
+  // a 390px viewport. Vertical padding is untouched - only horizontal shrinks.
+  .table th,
+  .table td {
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+  }
 }

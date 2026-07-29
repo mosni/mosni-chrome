@@ -1,0 +1,92 @@
+@use "shared";
+
+// Opt-in button variants. None of these touch the base `button`/`.btn` rules in _button.scss (D-31) -
+// each is a class a consumer adds on top of (or, for ghost/icon, instead of) the default look. Every
+// variant carries the same transition/:focus-visible/reduced-motion treatment as the default button
+// (_button.scss ~L38) so none of them regress keyboard-focus visibility or motion-reduction.
+
+.btn-ghost {
+  display: inline-block;
+  box-sizing: border-box;
+  padding: 0.6rem 1.1rem;
+  font: inherit;
+  font-weight: 500;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--mosni-border-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    transform 60ms ease;
+
+  &:hover {
+    background: var(--mosni-surface-hover);
+  }
+
+  &:active {
+    background: var(--mosni-surface-selected);
+    transform: translateY(1px);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  @include shared.focus-ring;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+.btn-icon {
+  @include shared.icon-button;
+  width: 2.25rem;
+  height: 2.25rem;
+
+  &:active {
+    background: var(--mosni-surface-selected);
+  }
+}
+
+.btn-sm,
+button.btn-sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.btn-danger,
+button.btn-danger {
+  background: var(--mosni-error-strong);
+  transition:
+    background-color 120ms ease,
+    transform 60ms ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--mosni-error-strong) 85%, white);
+  }
+
+  &:active {
+    background: color-mix(in srgb, var(--mosni-error-strong) 85%, black);
+    transform: translateY(1px);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  @include shared.focus-ring;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
+}

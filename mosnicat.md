@@ -97,6 +97,14 @@ strongest no-JS story. Neither path is deprecated or secondary, and this is not 
   are `mosni-`-prefixed custom events that bubble (`mosni-tab-change`, `mosni-toast-dismiss`).
 - Runtime-state attributes reflect via a mirroring property (`modal.open`, `switch.checked`,
   `menuItem.selected`, `tab.selected`, …) — setting either the attribute or the property keeps both in sync.
+- **Every attribute-backed prop is settable as a property, full stop — not just the runtime-state ones
+  above.** React 19 assigns JSX props as plain property writes once a custom element upgrades; a
+  getter-only accessor throws on that assignment instead of no-oping, which took production down once
+  (`tab.label` was getter-only, forcing `mosni/files` into a `dangerouslySetInnerHTML` workaround just to
+  set a tab's label from React). So: no accessor pair ships getter-only. Where the prop mirrors a single
+  attribute 1:1 (`tab.label`), the setter just reflects it; where the value has no single attribute to
+  mirror (e.g. `chips.value`, derived from child checkboxes), the setter still exists and does the
+  sensible write-through instead of throwing.
 
 **Design language:** components follow the same design language as the primitives above.
 

@@ -74,6 +74,7 @@ class MosniDropdown extends MosniElement {
   #trigger: HTMLButtonElement | undefined;
   #menu: HTMLDivElement | undefined;
   #outsideClickHandler: ((event: PointerEvent) => void) | undefined;
+  #scrollHandler: (() => void) | undefined;
 
   protected render(): void {
     this.classList.add("dropdown");
@@ -118,12 +119,19 @@ class MosniDropdown extends MosniElement {
     this.#menu = menu;
   }
 
-  // Only the outside-click listener lives on document - mirrors mosni-tooltip's teardown (91d5784):
-  // without removing it here, every discarded dropdown would leak one document listener forever.
+  // The outside-click and scroll listeners both live on document/window, not this element - mirrors
+  // mosni-tooltip's teardown (91d5784): without removing them here, every discarded dropdown that was
+  // open at the time would leak a document/window listener forever.
   disconnectedCallback(): void {
     if (this.#outsideClickHandler) {
       document.removeEventListener("pointerdown", this.#outsideClickHandler);
       this.#outsideClickHandler = undefined;
+    }
+    if (this.#scrollHandler) {
+      window.removeEventListener("scroll", this.#scrollHandler, {
+        capture: true,
+      });
+      this.#scrollHandler = undefined;
     }
   }
 
@@ -142,12 +150,33 @@ class MosniDropdown extends MosniElement {
     else this.#open();
   }
 
+  // position: fixed, computed from the trigger's own viewport rect, not the CSS default's
+  // `position: absolute` (relative to this element). A dropdown inside ANY scrollable ancestor -
+  // .table-scroll (E4.1 Wave E/D-79) is the case that surfaced this - clips an absolutely-positioned
+  // descendant the moment that ancestor's overflow becomes non-visible on either axis (overflow-x:
+  // auto forces the COMPUTED overflow-y to auto too, even if overflow-y: visible is written
+  // explicitly - verified in Chromium, not just spec text). `position: fixed` escapes that: it's
+  // positioned against the viewport, not the nearest scrollable box, so no ancestor's overflow can
+  // clip it. Recomputed on every open (the trigger may have moved since the menu last closed).
+  #positionMenu(): void {
+    const menu = this.#menu;
+    const trigger = this.#trigger;
+    if (!menu || !trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const menuWidth = menu.offsetWidth;
+    const left = Math.min(rect.left, window.innerWidth - menuWidth - 8);
+    menu.style.position = "fixed";
+    menu.style.top = `${rect.bottom + 6}px`;
+    menu.style.left = `${Math.max(8, left)}px`;
+  }
+
   #open(): void {
     const menu = this.#menu;
     const trigger = this.#trigger;
     if (!menu || !trigger || this.#isOpen()) return;
 
     menu.hidden = false;
+    this.#positionMenu();
     trigger.setAttribute("aria-expanded", "true");
 
     // Deferred a tick so the same click that opened the menu (which is still bubbling toward
@@ -162,6 +191,16 @@ class MosniDropdown extends MosniElement {
       document.addEventListener("pointerdown", this.#outsideClickHandler);
     }, 0);
 
+    // position: fixed no longer moves with the trigger when an ancestor (e.g. .table-scroll, or the
+    // page itself) scrolls - closing on scroll is simpler and more robust than re-tracking position
+    // continuously, and matches how a click elsewhere already dismisses the menu. Capture: true so
+    // this fires for a scroll on ANY scrollable ancestor, not just window.
+    this.#scrollHandler = () => this.#close();
+    window.addEventListener("scroll", this.#scrollHandler, {
+      capture: true,
+      passive: true,
+    });
+
     this.#items()
       .find((button) => !button.disabled)
       ?.focus();
@@ -173,10 +212,19 @@ class MosniDropdown extends MosniElement {
     if (!menu || !this.#isOpen()) return;
 
     menu.hidden = true;
+    menu.style.position = "";
+    menu.style.top = "";
+    menu.style.left = "";
     trigger?.setAttribute("aria-expanded", "false");
     if (this.#outsideClickHandler) {
       document.removeEventListener("pointerdown", this.#outsideClickHandler);
       this.#outsideClickHandler = undefined;
+    }
+    if (this.#scrollHandler) {
+      window.removeEventListener("scroll", this.#scrollHandler, {
+        capture: true,
+      });
+      this.#scrollHandler = undefined;
     }
     trigger?.focus();
   }

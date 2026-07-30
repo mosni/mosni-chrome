@@ -1,5 +1,3 @@
-@use "shared";
-
 img.cat {
   position: fixed;
   bottom: 0;
@@ -10,6 +8,12 @@ img.cat {
   z-index: -1;
 }
 
+@media (max-width: 480px) {
+  img.cat {
+    left: 55vw;
+  }
+}
+
 canvas.eye {
   position: fixed;
   top: 0;
@@ -18,18 +22,4 @@ canvas.eye {
   height: 100vh;
   pointer-events: none;
   z-index: -1;
-}
-
-// z-index:-1 keeps the cat behind any opaque box that shares its footprint - fine down to
-// shared.$bp-narrow, where .layout-main (and .panel/.content-container's own gutters within it) are
-// still solid. Below that the mobile nav treatment makes .layout-main transparent (_layout.scss) so
-// its own padding no longer backstops the cat, and the single-column layout leaves no reliable gutter
-// beside a .panel/.content-container for it to hide in either - so instead of risking it showing
-// through behind/beside a card, hide it there. It stays visible everywhere else (D-31: must not
-// disappear from mosni.dev/the docs site).
-@media (max-width: shared.$bp-narrow) {
-  img.cat,
-  canvas.eye {
-    display: none;
-  }
 }

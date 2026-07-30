@@ -1,5 +1,5 @@
 import { MosniElement, define } from "../base-element";
-import { icon } from "../icons";
+import { icon, type IconName } from "../icons";
 
 let nextId = 0;
 
@@ -71,6 +71,10 @@ class MosniDropdownItem extends MosniElement {
 }
 
 class MosniDropdown extends MosniElement {
+  static get observedAttributes(): string[] {
+    return ["icon-only", "label"];
+  }
+
   #trigger: HTMLButtonElement | undefined;
   #menu: HTMLDivElement | undefined;
   #outsideClickHandler: ((event: PointerEvent) => void) | undefined;
@@ -89,14 +93,13 @@ class MosniDropdown extends MosniElement {
 
     const trigger = document.createElement("button");
     trigger.type = "button";
-    trigger.className = "dropdown-trigger";
     trigger.id = `${id}-trigger`;
     trigger.setAttribute("aria-haspopup", "menu");
     trigger.setAttribute("aria-expanded", "false");
     trigger.setAttribute("aria-controls", id);
-    trigger.append(document.createTextNode(this.getAttribute("label") ?? ""));
-    trigger.appendChild(icon("chevron-down", 16));
     trigger.addEventListener("click", () => this.#toggle());
+    this.#trigger = trigger;
+    this.#applyTriggerContent();
 
     const menu = document.createElement("div");
     menu.className = "dropdown-menu";
@@ -116,7 +119,6 @@ class MosniDropdown extends MosniElement {
     });
 
     this.append(trigger, menu);
-    this.#trigger = trigger;
     this.#menu = menu;
   }
 
@@ -303,11 +305,53 @@ class MosniDropdown extends MosniElement {
     this.#close();
   }
 
+  attributeChangedCallback(name: string): void {
+    if (!this.rendered) return;
+    if (name === "icon-only" || name === "label") this.#applyTriggerContent();
+  }
+
+  // icon-only absent: text(label) + chevron-down, exactly as before this attribute existed - the
+  // backwards-compatibility requirement every existing consumer relies on. icon-only present: just
+  // the named glyph (defaulting to "more-vertical"), no text node and no chevron, and the label
+  // moves to aria-label since it's no longer visible text - a trigger with no accessible name is a
+  // defect, and label is where callers already put it.
+  #applyTriggerContent(): void {
+    const trigger = this.#trigger;
+    if (!trigger) return;
+    trigger.replaceChildren();
+
+    const label = this.getAttribute("label") ?? "";
+    if (this.hasAttribute("icon-only")) {
+      const glyph = (this.getAttribute("icon-only") ||
+        "more-vertical") as IconName;
+      trigger.className = "dropdown-trigger dropdown-trigger-icon";
+      trigger.append(icon(glyph, 20));
+      trigger.removeAttribute("aria-label");
+      trigger.setAttribute("aria-label", label);
+    } else {
+      trigger.className = "dropdown-trigger";
+      trigger.append(document.createTextNode(label));
+      trigger.appendChild(icon("chevron-down", 16));
+      trigger.removeAttribute("aria-label");
+    }
+  }
+
   get label(): string {
     return this.getAttribute("label") ?? "";
   }
   set label(value: string) {
     this.setAttribute("label", value);
+  }
+
+  get iconOnly(): string {
+    return this.getAttribute("icon-only") ?? "";
+  }
+  // React 19 assigns JSX props as property writes once the element upgrades - a getter with no
+  // setter throws on that assignment (mosnicat.md's mirroring rule, extended to every
+  // attribute-backed prop by D-112).
+  set iconOnly(value: string) {
+    if (value) this.setAttribute("icon-only", value);
+    else this.removeAttribute("icon-only");
   }
 }
 

@@ -43,6 +43,10 @@ mosni-dropdown-item {
   }
 }
 
+.dropdown-trigger-icon {
+  @include shared.icon-button;
+}
+
 .dropdown-menu {
   position: absolute;
   top: calc(100% + 0.35rem);

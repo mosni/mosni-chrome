@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Copy,
   Menu,
+  MoreVertical,
 } from "lucide";
 
 const glyphs = {
@@ -19,6 +20,7 @@ const glyphs = {
   "chevron-down": ChevronDown,
   copy: Copy,
   menu: Menu,
+  "more-vertical": MoreVertical,
 } as const;
 export type IconName = keyof typeof glyphs;
 

@@ -279,9 +279,6 @@ export async function generateDocs({ distDir }) {
         max-height: 480px;
         overflow: auto;
       }
-      .table-scroll {
-        overflow-x: auto;
-      }
       .table-desc {
         overflow-wrap: anywhere;
       }

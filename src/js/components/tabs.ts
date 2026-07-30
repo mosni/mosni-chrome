@@ -9,6 +9,12 @@ class MosniTab extends MosniElement {
     return this.getAttribute("label") ?? "";
   }
 
+  // React 19 assigns JSX props as property writes once the element upgrades - a getter with no
+  // setter throws on that assignment (this took production down once, see mosnicat.md).
+  set label(value: string) {
+    this.setAttribute("label", value);
+  }
+
   get selected(): boolean {
     return this.hasAttribute("selected");
   }

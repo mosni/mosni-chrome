@@ -45,7 +45,8 @@ class MosniTooltip extends MosniElement {
       // scheduling a hover-show. Gated on pointerType so this never fires for a mouse click (which
       // already gets its tip from hover) or a keyboard activation (which already gets it from focus).
       anchor.addEventListener("pointerup", (event) => {
-        if (!(event instanceof PointerEvent) || event.pointerType !== "touch") return;
+        if (!(event instanceof PointerEvent) || event.pointerType !== "touch")
+          return;
         this.#toggleTouch();
       });
     }
@@ -55,9 +56,14 @@ class MosniTooltip extends MosniElement {
     // Kept in a field so disconnectedCallback can unregister it: this is a document-level listener
     // owned by a per-instance element, so without removal every discarded tooltip leaves one behind.
     this.#outsideTapHandler = (event: PointerEvent) => {
-      if (event.pointerType !== "touch" || !this.#tip || this.#tip.hidden) return;
+      if (event.pointerType !== "touch" || !this.#tip || this.#tip.hidden)
+        return;
       const target = event.target;
-      if (target instanceof Node && (this.#anchor?.contains(target) || this.#tip.contains(target))) return;
+      if (
+        target instanceof Node &&
+        (this.#anchor?.contains(target) || this.#tip.contains(target))
+      )
+        return;
       this.#hide();
     };
     document.addEventListener("pointerdown", this.#outsideTapHandler);

@@ -1,0 +1,115 @@
+@use "shared";
+
+mosni-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+mosni-dropdown-item {
+  display: contents;
+}
+
+.dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-sizing: border-box;
+  padding: 0.6rem 1.1rem;
+  font: inherit;
+  font-weight: 500;
+  color: var(--mosni-white);
+  background: var(--mosni-surface-input);
+  border: 1px solid var(--mosni-border-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: var(--mosni-surface-hover);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  @include shared.focus-ring;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.dropdown-trigger-icon {
+  @include shared.icon-button;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  z-index: shared.$z-tooltip;
+  box-sizing: border-box;
+  min-width: 10rem;
+  padding: 0.35rem;
+  background: var(--mosni-surface-input);
+  border: 1px solid var(--mosni-border-muted);
+  border-radius: 8px;
+  box-shadow: var(--mosni-shadow-floating);
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.dropdown-item {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  color: var(--mosni-white);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  &:hover:not(:disabled) {
+    background: var(--mosni-surface-hover);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  @include shared.focus-ring;
+
+  &:focus-visible {
+    background: var(--mosni-surface-hover);
+  }
+
+  &:disabled {
+    color: var(--mosni-text-muted);
+    cursor: not-allowed;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.dropdown-item-danger {
+  color: var(--mosni-error);
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: var(--mosni-white);
+    background: var(--mosni-error-strong);
+  }
+}

@@ -1,0 +1,25 @@
+<mosni-dropdown label="Actions">
+  <mosni-dropdown-item value="rename">Rename</mosni-dropdown-item>
+  <mosni-dropdown-item value="duplicate">Duplicate</mosni-dropdown-item>
+  <mosni-dropdown-item value="delete" variant="danger"
+    >Delete</mosni-dropdown-item
+  >
+</mosni-dropdown>
+<p>
+  Click the trigger to open, use <kbd>↑</kbd>/<kbd>↓</kbd> to move between
+  items, <kbd>Esc</kbd> or an outside click to dismiss. Selecting an item fires
+  <code>mosni-dropdown-select</code> with <code>detail: { value }</code>.
+</p>
+<mosni-dropdown icon-only="more-vertical" label="Actions for report.pdf">
+  <mosni-dropdown-item value="rename">Rename</mosni-dropdown-item>
+  <mosni-dropdown-item value="duplicate">Duplicate</mosni-dropdown-item>
+  <mosni-dropdown-item value="delete" variant="danger"
+    >Delete</mosni-dropdown-item
+  >
+</mosni-dropdown>
+<p>
+  With the <code>icon-only</code> attribute, the trigger renders just the named
+  glyph (default <code>more-vertical</code>) with no visible text or chevron.
+  <code>label</code> still supplies the trigger's accessible name via
+  <code>aria-label</code> — useful for a compact per-row action menu.
+</p>

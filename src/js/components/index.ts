@@ -8,6 +8,7 @@ import "./switch";
 import "./chips";
 import "./modal";
 import "./tooltip";
+import "./dropdown";
 import "./toast";
 import "./lightbox";
 import "./code";

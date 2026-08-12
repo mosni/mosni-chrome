@@ -163,6 +163,18 @@ function normalizeAttributes(root) {
     for (const attr of ID_REFERENCING_ATTRS) {
       if (el.hasAttribute(attr)) el.removeAttribute(attr);
     }
+    // <details name="…"> (the `exclusive` accordion group correlator, accordion.ts's generated
+    // `mosni-accordion-N` / <Accordion>'s useId()) is the SAME shape of thing as id/aria-controls -
+    // an opaque, generated cross-reference, not meaningful content - so it is normalized away here
+    // too. Scoped to <details> specifically, NOT added to ID_REFERENCING_ATTRS (which applies to
+    // every element): `name` is real, meaningful, must-match content on form controls elsewhere
+    // (<input name="email">), and jsdom (checked: v29.1.1) does not implement `<details>.name` as a
+    // reflected property at all, so the custom-element side would never show it regardless of
+    // value - stripping it here is both semantically correct and the only way to compare the
+    // `exclusive` variant at all under this jsdom version.
+    if (el.tagName.toLowerCase() === "details" && el.hasAttribute("name")) {
+      el.removeAttribute("name");
+    }
     if (el.hasAttribute("style")) {
       const kept = stripMeasurementStyle(el.getAttribute("style"));
       if (kept) el.setAttribute("style", kept);

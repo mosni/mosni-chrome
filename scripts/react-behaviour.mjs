@@ -48,6 +48,19 @@ function installDomGlobals() {
   // logs "not configured to support act(...)" warnings for every update in this file.
   global.IS_REACT_ACT_ENVIRONMENT = true;
 
+  // jsdom implements <dialog> but not showModal()/close() - same stub smoke.mjs and parity.mjs
+  // both install, needed here too for <Modal>'s behaviour case.
+  if (typeof window.HTMLDialogElement.prototype.showModal !== "function") {
+    window.HTMLDialogElement.prototype.showModal = function stubShowModal() {
+      this.open = true;
+    };
+    window.HTMLDialogElement.prototype.close = function stubClose(returnValue) {
+      if (returnValue !== undefined) this.returnValue = returnValue;
+      this.open = false;
+      this.dispatchEvent(new window.Event("close"));
+    };
+  }
+
   return dom;
 }
 

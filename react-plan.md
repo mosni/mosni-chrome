@@ -419,20 +419,20 @@ trusting the table:
 1. **`mosni-chips` and `mosni-tabs` were in `RENAMED_HOSTS`; they belong in `UNWRAPPED_HOSTS`.**
    Renaming assumes the host itself carries the real class (verbatim attribute copy to a plain
    tag) — but neither `chips.ts` nor `tabs.ts` ever calls `classList.add` on `this`; each builds
-   its real box (`div.chips`, `div.tabs`) as a *child* and appends it. Renaming the class-less host
+   its real box (`div.chips`, `div.tabs`) as a _child_ and appends it. Renaming the class-less host
    produced a spurious extra wrapper level with an empty class instead of the single classed box
    React renders. `mosni-lightbox` had the same bug (was in `RENAMED_HOSTS` → `"span"`; `lightbox.ts`
    never classes its host either — the `<img>` it enhances stays a plain child) — moved to
    `UNWRAPPED_HOSTS` too, where unwrapping correctly exposes `img.lightbox-thumb` directly, matching
    §4's own component table for `Lightbox`.
 2. **`mosni-dropdown` was in `UNWRAPPED_HOSTS`; it belongs in `RENAMED_HOSTS` → `"div"`.** The
-   opposite mistake: `dropdown.ts` *does* `classList.add("dropdown")` on itself (confirmed live —
+   opposite mistake: `dropdown.ts` _does_ `classList.add("dropdown")` on itself (confirmed live —
    `<mosni-dropdown class="dropdown">`), consistent with D-R11 listing `.dropdown` as real styling
    with a class twin. Moved.
 3. **A tag whose custom element styles itself via a bare TAG selector (not a class) needs a third
    table, not two.** `mosni-accordion` never adds any class to its own host — `_accordion.scss`
    styles it as `mosni-accordion, .accordion { … }`, and the tag-selector half is all the custom
-   element needs. But D-R11's `.accordion` comma twin exists *specifically* for the class-path and
+   element needs. But D-R11's `.accordion` comma twin exists _specifically_ for the class-path and
    React consumers, who cannot select by custom-element tag — so React's `<Accordion>` must render
    `div.accordion`, and a plain attribute-copying rename (which only copies what's already on the
    class-less host) can't produce that. Added `IMPLICIT_HOST_CLASS` (currently just
@@ -442,10 +442,10 @@ trusting the table:
 4. **Real harness bug, independent of any table: `stripConfigAttributes` mutated a LIVE, connected
    custom element, and for `mosni-field`'s `error` that broke the very thing being compared.**
    `error` is both a documented config attribute (so the stripping step removes it from the host)
-   *and* `observed: true` in `meta.ts` (`mosni-field`'s `observedAttributes` includes it) — so
+   _and_ `observed: true` in `meta.ts` (`mosni-field`'s `observedAttributes` includes it) — so
    `el.removeAttribute("error")` on the live element fired `attributeChangedCallback` for real,
    which ran `#applyError(null)` and erased the `.error` class, `aria-invalid`, and the
-   `.field-error` paragraph *before* the comparison ever read them. First caught as
+   `.field-error` paragraph _before_ the comparison ever read them. First caught as
    `mosni-field/error` failing with the element side missing all three. Fixed by making
    `normalizeHost` operate on `host.cloneNode(true)` instead of the live host — every component's
    `attributeChangedCallback` already guards on `this.rendered` (set only by `connectedCallback`),
@@ -458,7 +458,7 @@ trusting the table:
 5. **Smaller harness fix, same wave: inline-style serialization spacing.** A live DOM's `style`
    attribute always has a space after each colon; React's `style={{…}}` serializes without one
    (`max-height:13rem`). `stripMeasurementStyle` (already responsible for dropping the three
-   *runtime-measured* style props) now also reformats every *kept* declaration to one canonical
+   _runtime-measured_ style props) now also reformats every _kept_ declaration to one canonical
    `prop: value` spacing, so authored styles like Chips' `maxHeight` compare on their actual value,
    not on which side happened to render the space.
 6. **Confirmed, accepted quirk — not fixed, deliberately not tested via parity:** `field.ts`'s
@@ -466,16 +466,16 @@ trusting the table:
    never `setAttribute`. Neither `value` nor `checked` is a reflected IDL attribute (unlike
    `disabled`/`type`, verified reflected), so the custom element's serialized markup never shows
    either one, no matter what a fixture configures — while React's SSR always renders both as
-   attributes for controlled *and* uncontrolled inputs (verified empirically). This is a genuine,
+   attributes for controlled _and_ uncontrolled inputs (verified empirically). This is a genuine,
    pre-existing element-side property/attribute gap, not a harness artifact, and not something this
    plan authorizes fixing (D-17/D-R6 changes are out of scope for a React-path wave). Parity
    fixtures for `Field`/`Switch` never exercise `value`/`checked` for this reason;
    `scripts/react-behaviour.mjs` (new, §5.2) verifies the real `.value`/`.checked` semantics against
    a live DOM instead, where the distinction doesn't apply. `Chips` is unaffected: its checkboxes'
    `checked` comes from literal HTML parsed at fixture-insertion time (never touched by `.checked =`
-   afterward), which *does* survive serialization — confirmed empirically before relying on it.
+   afterward), which _does_ survive serialization — confirmed empirically before relying on it.
 7. **General fixture-authoring rule this wave established, for future waves to reuse:** a tag in
-   `UNWRAPPED_HOSTS` is only unwrapped when it appears as a *descendant* — the walk that does
+   `UNWRAPPED_HOSTS` is only unwrapped when it appears as a _descendant_ — the walk that does
    renaming/unwrapping/implicit-classing only visits `root.children`, never the root itself (root
    tag exclusion, §5.1). A fixture that uses an `UNWRAPPED_HOSTS` tag as its OWN top-level element
    therefore compares the never-classed host directly against React's classed root and fails. Every

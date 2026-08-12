@@ -7,16 +7,21 @@
 // prose only makes a failure diff harder to read.
 import type { ReactElement } from "react";
 import {
+  Accordion,
+  AccordionItem,
   Chips,
   Field,
   Footer,
   Header,
   Layout,
+  Lightbox,
   Logo,
   Menu,
   MenuItem,
   Panel,
   Switch,
+  Tab,
+  Tabs,
 } from "../src/index";
 
 export interface ParityCase {
@@ -286,6 +291,102 @@ export const cases: ParityCase[] = [
             { value: "Eight", label: "Eight" },
           ]}
         />
+      </div>
+    ),
+  },
+
+  // --- Wave 3: Lightbox, Accordion, AccordionItem, Tabs, Tab ----------------------------------
+  //
+  // <Modal> and <Tooltip> have NO fixtures here (react-plan.md §10): both eagerly portal their
+  // real content to document.body, and react-dom/server THROWS on a portal target that doesn't
+  // exist (verified - there is no document.body during renderToStaticMarkup) rather than silently
+  // rendering nothing. Both components guard on a client-only `mounted` flag, so under
+  // renderToStaticMarkup they correctly produce NO markup at all - which parity.mjs's
+  // "React element produced no markup" check treats as a fixture error, not a comparable empty
+  // state. scripts/react-behaviour.mjs (§5.2) verifies both against a live DOM instead, where
+  // portals render for real. <Lightbox> has no such problem and gets a normal fixture below: its
+  // overlay dialog is built lazily on click (matching lightbox.ts's own `open()`), so the DEFAULT
+  // (unclicked) render has no dialog on either side.
+
+  {
+    // mosni-lightbox is UNWRAPPED_HOSTS (never classes its own host - only the enhanced <img>
+    // carries a class), so it needs the same neutral-<div> wrapping Switch/Chips do.
+    name: "mosni-lightbox/default",
+    html: `<div><mosni-lightbox caption="A cat"><img src="cat.png" alt="a cat"></mosni-lightbox></div>`,
+    element: (
+      <div>
+        <Lightbox src="cat.png" alt="a cat" caption="A cat" />
+      </div>
+    ),
+  },
+
+  {
+    // mosni-accordion needs the same wrapping - it is RENAMED_HOSTS, but only via
+    // IMPLICIT_HOST_CLASS (applied during the walk over DESCENDANTS), so it is not safe as a
+    // fixture's own root either (root is exempt from the walk, §5.1).
+    name: "mosni-accordion/default",
+    html: `<div><mosni-accordion><details><summary>Q1</summary><p>A1</p></details><details open><summary>Q2</summary><p>A2</p></details></mosni-accordion></div>`,
+    element: (
+      <div>
+        <Accordion>
+          <AccordionItem summary="Q1">
+            <p>A1</p>
+          </AccordionItem>
+          <AccordionItem summary="Q2" defaultOpen>
+            <p>A2</p>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    ),
+  },
+  {
+    // `exclusive`'s generated <details name> is normalized away on both sides (see
+    // normalize-html.mjs's <details> `name` handling) - it is an opaque, generated group
+    // correlator, the same shape as an id, and jsdom (checked: v29.1.1) does not implement
+    // `<details>.name` as a reflected attribute at all, so the element side could never show it.
+    name: "mosni-accordion/exclusive",
+    html: `<div><mosni-accordion exclusive><details><summary>Q1</summary>A1</details><details><summary>Q2</summary>A2</details></mosni-accordion></div>`,
+    element: (
+      <div>
+        <Accordion exclusive>
+          <AccordionItem summary="Q1">A1</AccordionItem>
+          <AccordionItem summary="Q2">A2</AccordionItem>
+        </Accordion>
+      </div>
+    ),
+  },
+
+  {
+    // mosni-tabs is UNWRAPPED_HOSTS too (§10) - wrapped for the same reason as Switch/Chips/Lightbox.
+    name: "mosni-tabs/default-selection",
+    html: `<div><mosni-tabs><mosni-tab label="One"><p>one</p></mosni-tab><mosni-tab label="Two"><p>two</p></mosni-tab></mosni-tabs></div>`,
+    element: (
+      <div>
+        <Tabs>
+          <Tab label="One">
+            <p>one</p>
+          </Tab>
+          <Tab label="Two">
+            <p>two</p>
+          </Tab>
+        </Tabs>
+      </div>
+    ),
+  },
+  {
+    // A meaningful variant per §5.1: a non-zero starting selection.
+    name: "mosni-tabs/non-zero-selection",
+    html: `<div><mosni-tabs><mosni-tab label="One"><p>one</p></mosni-tab><mosni-tab label="Two" selected><p>two</p></mosni-tab></mosni-tabs></div>`,
+    element: (
+      <div>
+        <Tabs defaultSelectedIndex={1}>
+          <Tab label="One">
+            <p>one</p>
+          </Tab>
+          <Tab label="Two">
+            <p>two</p>
+          </Tab>
+        </Tabs>
       </div>
     ),
   },

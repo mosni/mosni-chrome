@@ -27,7 +27,8 @@
   min-width: 0;
 }
 
-.header-brand mosni-logo {
+.header-brand mosni-logo,
+.header-brand .mosni-logo {
   height: 34px;
 }
 
@@ -36,7 +37,8 @@
     font-size: 26px;
   }
 
-  .header-brand mosni-logo {
+  .header-brand mosni-logo,
+  .header-brand .mosni-logo {
     height: 28px;
   }
 

@@ -1,14 +1,21 @@
 // The mosni mark. Adaptive by design: set a height (or font-size) on the element and the SVG keeps
 // its aspect ratio and fills that box, so the same element works at any scale. Defaults to tracking
 // the surrounding font-size so an inline logo reads at text height with no extra sizing.
-mosni-logo {
+// The `.mosni-logo` twin on every rule is what makes the mark reachable WITHOUT the custom element
+// (D-R11): the React path and a hand-written class path both render `span.mosni-logo`, and a rule
+// selecting only the tag would leave both unstyled. Same reason the class twins exist on .dropdown
+// and .accordion; host rules that only reset the custom element's own box (display: contents on
+// mosni-tab/mosni-menu-item/…) deliberately have no twin, since no other path renders that host.
+mosni-logo,
+.mosni-logo {
   display: inline-flex;
   align-items: center;
   height: 1.5em;
   line-height: 0;
 }
 
-mosni-logo > img {
+mosni-logo > img,
+.mosni-logo > img {
   display: block;
   height: 100%;
   width: auto;

@@ -100,6 +100,22 @@ step 2 is per-component and optional:
 conventions, SSR, caveats), and a third **React** tab inside every component section, alongside
 "Component" and "Class (HTML)".
 
+**D-R11 — Host-tag CSS rules that carry real styling get a class twin.** _(Added during Wave 1, from
+a gap the parity harness exposed — see §10.)_ Some SCSS rules select the custom-element **tag**
+(`mosni-logo { … }`), which the React path never renders. They split cleanly in two:
+
+- **Host resets** — `display: contents` / `display: block` on `mosni-tab`, `mosni-menu-item`,
+  `mosni-modal`, `mosni-dropdown-item`, `mosni-switch`, `mosni-chips`. These exist only to neutralise
+  a box that exists only because a custom element needs somewhere to live. React renders no such host,
+  so these get **no twin** — adding one would invent a box the React path doesn't have.
+- **Real styling** — `mosni-logo` (+ `mosni-logo > img`, `.header-brand mosni-logo`),
+  `mosni-dropdown` (positioning context), `mosni-accordion` (scopes styling to its `details`
+  descendants). These get a comma twin: `mosni-logo, .mosni-logo { … }`.
+
+This is not only a React fix. D-17 promises every component has a hand-written class equivalent, and
+for these three that promise was **not actually keepable** before — no class existed that reproduced
+their styling. The twins make the class path real for all three authoring paths at once.
+
 ## 3. Public API conventions (binding for every component)
 
 - **Named exports, PascalCase**, no default export. `import { Panel, Tabs, Tab } from "@mosni/react"`.
@@ -332,3 +348,61 @@ Each step is independently shippable and independently revertable.
 - [ ] `mosnicat.md` documents the React path as the third first-class authoring path
 - [ ] `docs/react-migration-files.md` exists; the `mosni/files` repo is untouched
 - [ ] No behavioural change to any existing custom element beyond the D-R8 pure-function swaps
+
+## 10. Implementer notes
+
+Recorded during implementation; each is a fact discovered by building the thing, not a plan change
+made for convenience.
+
+### Wave 0 — two bugs found on review, fixed before Wave 1
+
+1. **`check-shape.mjs` asserted the opposite of D-R4.** It reused the core bundles' "dependency-free"
+   pattern to assert that `packages/react/dist/index.js` contains **no** `from "react"` — but react
+   staying external is precisely what makes that import appear. The correct check is inverted: the
+   bare external import must be **present**, and React's implementation must be **absent** (matched via
+   the `_DO_NOT_USE_OR_YOU_WILL_BE_FIRED` internals marker, which survives minification). The zero-
+   runtime-dependency half of D-R4 is now checked where it actually lives — `packages/react/package.json`
+   having no `dependencies` — plus a check that `react` is declared as a peerDependency.
+2. **`./elements` was unreachable at runtime.** `build-react.mjs` correctly wrote a `dist/elements.js`
+   (its own comment explains why a side-effect import needs a real runtime file), but `package.json`'s
+   `"./elements"` export declared only a `"types"` condition. `import "@mosni/react/elements"` — the
+   exact line D-R9 step 1 tells consumers to write — would have failed module resolution for every
+   consumer. Fixed, and check-shape now asserts the `"import"` condition exists.
+
+### Wave 1 — what the parity harness caught
+
+The harness earned its keep before it was even finished. Real drift it surfaced, in order:
+
+- **`slot="links"` survives on the element side.** The custom element reads the marker, relocates the
+  child, and leaves the attribute behind; React has no counterpart. Normalised away (D-16 marker, and
+  nothing in the SCSS selects it — checked).
+- **Configuration attributes stay on the host.** `<mosni-header brand="B" tagline="t">` keeps both
+  after render; the React props leave no trace. Rather than hard-code a second list, the normaliser
+  strips whatever `meta.ts` documents for that tag — so it cannot drift from the docs tables.
+- **React 19 hoists resource hints.** `renderToStaticMarkup` emits a
+  `<link rel="preload" as="image">` **ahead of** the component root for anything containing an `<img>`
+  (`<Logo>`, hence `<Header>` and `<Layout>`). Correct, useful output — but not part of the subtree, so
+  it is dropped before comparison. **Worth documenting for consumers in Wave 5's React docs section:
+  SSR output will contain these hints.**
+- **The host-tag CSS gap that became D-R11.** The largest finding, and one no amount of reading the
+  React code would have surfaced.
+
+Two normalisations are harness artifacts rather than contract, and are deliberately narrow:
+
+- **Asset origin.** jsdom evaluates the core as an _inline_ script, so `document.currentScript.src` is
+  empty and `assetBase` falls back to its hard-coded `https://mosni.dev/`. In production the core is a
+  real `<script src="https://ui.mosni.dev/…">`, which is what `<Logo>` hard-codes. The fallback origin
+  is rewritten to the canonical one; a component pointing at a genuinely wrong host still fails.
+- **The public icon chunk is evaluated up front.** `<mosni-icon>` lazily injects a `<script src>` that
+  jsdom will not fetch, so without this the element parks its paint forever and compares an empty span
+  against React's rendered glyph.
+
+**Failing-capability proven** as §7 Wave 1 requires: breaking `panel-small` → `panel-smol` produced a
+correct root-class diff and exit code 1; reverted, back to green.
+
+### Where this stopped
+
+Waves 0 and 1 are complete, green and pushed. Waves 2–7 are untouched and the plan for them is
+unchanged. The next agent starts at **Wave 2 (form components)** and should read §10 first — the
+normalisation tables in `scripts/lib/normalize-html.mjs` already carry entries for every remaining
+component's host tag, so new fixtures should slot in without touching the harness.

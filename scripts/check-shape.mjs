@@ -28,6 +28,10 @@ const ICON_MARKER = "M12 15v5s3.03";
 // BARE_ESM_IMPORT_PATTERN already check for the core bundles, just anchored to these two names.
 const REACT_IMPORT_PATTERN =
   /\b(?:require\(\s*['"]react|from\s*['"]react(?:\/|['"]))/;
+// React tags its internals export with this suffix in every version (…_DO_NOT_USE_OR_YOU_WILL_BE_
+// FIRED), so it appears iff React's own implementation was inlined into the bundle - a marker that
+// survives minification, unlike a version string or a comment.
+const REACT_INLINED_PATTERN = /_DO_NOT_USE_OR_YOU_WILL_BE_FIRED/;
 const LUCIDE_IMPORT_PATTERN =
   /\b(?:require\(\s*['"]lucide|from\s*['"]lucide['"])/;
 
@@ -120,13 +124,45 @@ async function assertReactPackageShape() {
     throw new Error("dist/ is missing required asset: mosni-react.tgz");
   }
 
+  if (pkg.dependencies && Object.keys(pkg.dependencies).length > 0) {
+    throw new Error(
+      "packages/react/package.json: must declare ZERO runtime dependencies (D-R4) - found " +
+        Object.keys(pkg.dependencies).join(", "),
+    );
+  }
+  if (!pkg.peerDependencies?.react) {
+    throw new Error(
+      "packages/react/package.json: react must be declared as a peerDependency (D-R4)",
+    );
+  }
+  // `import "@mosni/react/elements"` is a side-effect import, which TS always keeps in the emitted
+  // JS - so the ./elements subpath needs a real runtime file behind it, not only a "types"
+  // condition, or every consumer taking D-R9 step 1 fails module resolution at runtime.
+  if (!pkg.exports?.["./elements"]?.import) {
+    throw new Error(
+      'packages/react/package.json: the "./elements" export needs an "import" condition - a ' +
+        "types-only condition breaks the side-effect import that D-R9 step 1 tells consumers to write",
+    );
+  }
+
   const bundle = await readFile(
     path.join(rootDir, "packages/react/dist/index.js"),
     "utf8",
   );
-  if (REACT_IMPORT_PATTERN.test(bundle)) {
+  // "react is not bundled" means the OPPOSITE of the core bundles' dependency-free rule: react must
+  // appear as a bare EXTERNAL import (the consumer's own copy renders), and React's implementation
+  // must not have been inlined. Asserting the absence of `from "react"` would demand exactly the
+  // wrong thing - esbuild emits that import precisely because react stayed external.
+  if (!REACT_IMPORT_PATTERN.test(bundle)) {
     throw new Error(
-      "packages/react/dist/index.js: must not bundle react - react must stay external (D-R4)",
+      "packages/react/dist/index.js: expected a bare external import of react - the consumer's own " +
+        "React must be what renders (D-R4)",
+    );
+  }
+  if (REACT_INLINED_PATTERN.test(bundle)) {
+    throw new Error(
+      "packages/react/dist/index.js: React's implementation got inlined into the bundle - react " +
+        "must stay external (D-R4)",
     );
   }
   if (LUCIDE_IMPORT_PATTERN.test(bundle)) {

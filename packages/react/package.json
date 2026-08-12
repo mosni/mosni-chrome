@@ -11,7 +11,8 @@
       "import": "./dist/index.js"
     },
     "./elements": {
-      "types": "./dist/elements.d.ts"
+      "types": "./dist/elements.d.ts",
+      "import": "./dist/elements.js"
     }
   },
   "files": [

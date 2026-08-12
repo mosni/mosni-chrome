@@ -1,6 +1,9 @@
 @use "shared";
 
-mosni-accordion {
+// `.accordion` twin (D-R11): this rule scopes REAL styling to its `details` descendants rather than
+// only resetting the host box, so the React path (which renders `div.accordion`) needs it too.
+mosni-accordion,
+.accordion {
   display: block;
 
   details {

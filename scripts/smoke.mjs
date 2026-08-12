@@ -134,6 +134,37 @@ async function testDocsExamplesRender() {
     "icons.html": "mosni-icon[name]",
   };
 
+  // React tabs (react-plan.md §6.2): every id below got a "React" tab added in docs.mjs, each
+  // wrapping its demo in a `#<id>-react-demo` div specifically so this check has something stable
+  // to assert against - the demo's actual MARKUP varies per component (and for the portal-based
+  // components, is deliberately sparse - see docs/examples/react/mosni-modal.tsx's own comment),
+  // so "the wrapper has at least one rendered child" is what's actually checkable uniformly,
+  // without hard-coding 18 different component-specific selectors that would only re-derive what
+  // parity.mjs already verifies far more precisely.
+  const REACT_TAB_IDS = [
+    "mosni-header",
+    "mosni-layout",
+    "mosni-panel",
+    "mosni-menu",
+    "mosni-footer",
+    "mosni-field",
+    "mosni-switch",
+    "mosni-chips",
+    "mosni-modal",
+    "mosni-tooltip",
+    "mosni-dropdown",
+    "icons",
+    "mosni-logo",
+    "mosni-toast",
+    "mosni-lightbox",
+    "mosni-code",
+    "mosni-accordion",
+    "mosni-tabs",
+  ];
+  for (const id of REACT_TAB_IDS) {
+    exampleSelectors[`${id}.html [react tab]`] = `#${id}-react-demo > *`;
+  }
+
   const dom = new JSDOM(indexHtml);
   const { document } = dom.window;
 

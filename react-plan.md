@@ -556,11 +556,49 @@ React-side counterpart, because §4's own table deliberately lifts selection to 
 (`selectedIndex`/`defaultSelectedIndex`) rather than repeating a boolean on every `<Tab>` — this is
 the one intentional, plan-sanctioned gap, allowlisted explicitly rather than silently passed.
 
+### Wave 5 — docs generalised; one process note for future agents
+
+Built exactly to §6's shape, no plan deviations:
+
+- `docs/examples/react.html` — the nav-level React section (install, bootstrap script tag, §3's
+  conventions, the `@mosni/react/elements` types-only step, an SSR note that calls out both the
+  React-19-resource-hint behaviour from Wave 1's findings and the Modal/Tooltip/Lightbox portal
+  limitation from Wave 3's, and D-R3's version-locking caveat stated plainly) - inserted immediately
+  before `COMPONENTS_INTRO` by special-casing its id out of the normal alphabetical filename loop in
+  `docs.mjs` (its filename would otherwise sort well before any `mosni-*` file).
+- `docs/examples/react/<id>.tsx` for all 18 sections that map to a documented, React-backed tag
+  (17 `mosni-*.html` files + `icons.html`, which documents `mosni-icon` under a different section
+  id - matched by id, same as everywhere else in this file, not by tag). Each is a real,
+  `export default function Example()`, importing `@mosni/react` by a relative path into
+  `packages/react/src` (bare `"@mosni/react"` has nothing to resolve against in this repo, same
+  reason `fixtures.tsx`/`cases.tsx` do this) - `docs.mjs` rewrites that one import line back to
+  `"@mosni/react"` for the DISPLAYED snippet only, so the reader sees the real public import while
+  the actual bundle-and-render step still resolves the local source.
+- `docs.mjs`'s old `renderPairedSection` (four hard-coded `PAIRS`) is now `renderGroupSection`,
+  used for every section: prepends a "React" tab (default-selected) whenever a matching
+  `docs/examples/react/<id>.tsx` exists, in front of whatever `Component`/`Class (HTML)` tabs
+  already existed, and falls back to the original plain `renderSection` when there would only be
+  one tab. `Modal`/`Tooltip`'s demo panes render only their non-portalled part (a modal's trigger
+  button, a tooltip's anchor text) — the real, accurate output of `renderToStaticMarkup` for a
+  portal-based component per Wave 3's finding, not a bug in the demo.
+- `smoke.mjs`'s `testDocsExamplesRender` gained one selector per new React tab
+  (`#<id>-react-demo > *`, not 18 hand-picked component-specific selectors — the demo's `id` is
+  something `docs.mjs` controls specifically so this check has one stable thing to assert against
+  regardless of what each component actually renders). Proved failing-capable the same way Wave 1's
+  parity harness was: broke the wrapper's `id` template, confirmed 18 red assertions, reverted.
+
+**Process note, not a plan/code finding:** mid-wave, a `sed`-based one-line edit to `docs.mjs`
+(for the failing-capability check above) was undone with `git checkout -- scripts/docs.mjs` — since
+this wave's docs.mjs rewrite hadn't been committed yet, `checkout` restored the pre-Wave-5 file
+from `HEAD` (Wave 4's commit), silently discarding the whole wave's work, not just the one-line
+`sed` edit. Re-applied from memory and re-verified. Recorded so a future agent doing a similar
+"break something, verify red, put it back" check remembers `git stash`/a manual re-edit, not
+`git checkout`, when the file being poked has uncommitted changes worth keeping.
+
 ### Where this stopped
 
-Waves 0–4 are complete, green, and pushed. `npm run verify` covers 38 parity fixtures and 8
-behaviour cases across every Wave 0–4 component. Waves 5 (docs) and 6 (contract + hand-off) are
-next, followed by the optional Wave 7. Read this whole §10 before starting Wave 5 — in particular
-the Wave 4 JSX-augmentation finding, which affects what the docs need to say about
-`@mosni/react/elements`, and the portal/parity limitation from Wave 3, which is exactly the kind of
-thing Wave 5's React docs section should mention for `<Modal>`/`<Tooltip>` consumers.
+Waves 0–5 are complete, green, and pushed. `npm run verify` covers 38 parity fixtures and 8
+behaviour cases across every Wave 0–4 component, plus a React tab (with a live demo rendered from
+a real `.tsx` file) on all 18 applicable doc sections and a new top-level React nav section. Wave 6
+(contract + hand-off: `mosnicat.md`'s React section, `README.md`, `docs/react-migration-files.md`)
+is next, followed by the optional Wave 7.

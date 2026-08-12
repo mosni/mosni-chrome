@@ -4,21 +4,37 @@
 // so it can render real components); this script's only job is to stand up a live DOM for
 // react-dom/client to render into and run every case against it.
 import { JSDOM } from "jsdom";
+import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { bundleAndImport, cleanupScratch } from "./lib/bundle-and-import.mjs";
 
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const distDir = path.join(rootDir, "dist");
 
 // react-dom/client (and the components it renders) read `document`/`window`/etc as ordinary
 // globals - the same assumption every browser bundle makes. There is no test-runner here doing
 // this implicitly (unlike Jest's jsdom environment), so it is done by hand, once, before the
 // bundled cases module (which imports react-dom/client at its own module scope) is ever loaded.
-function installDomGlobals() {
-  const dom = new JSDOM("<!doctype html><html><body></body></html>", {
-    url: "https://ui.mosni.dev/",
-    pretendToBeVisual: true, // requestAnimationFrame + friends, harmless for jsdom's zero-layout box model
-  });
+//
+// login-button.js is evaluated INLINE here (runScripts: "dangerously"), the same way parity.mjs's
+// makeElementDom() evaluates the core/icons bundles - <LoginButton> (D-R1's sanctioned exception)
+// renders the REAL <mosni-login-button> tag, which only has a shadow root, upgrades, and dispatches
+// mosni:login once its class is actually defined via customElements.define(); without this, the
+// tag would sit as a bare, un-upgraded HTMLElement and the behaviour case would find no shadow root.
+async function installDomGlobals() {
+  const loginButtonSrc = await readFile(
+    path.join(distDir, "login-button.js"),
+    "utf8",
+  );
+  const dom = new JSDOM(
+    `<!doctype html><html><head><script>${loginButtonSrc}</script></head><body></body></html>`,
+    {
+      url: "https://ui.mosni.dev/",
+      runScripts: "dangerously",
+      pretendToBeVisual: true, // requestAnimationFrame + friends, harmless for jsdom's zero-layout box model
+    },
+  );
   const { window } = dom;
 
   global.window = window;
@@ -73,7 +89,7 @@ function fail(name, err) {
 }
 
 async function main() {
-  const dom = installDomGlobals();
+  const dom = await installDomGlobals();
 
   const { cases } = await bundleAndImport(
     path.join(rootDir, "packages/react/behaviour/cases.tsx"),

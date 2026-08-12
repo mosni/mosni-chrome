@@ -400,13 +400,6 @@ Two normalisations are harness artifacts rather than contract, and are deliberat
 **Failing-capability proven** as §7 Wave 1 requires: breaking `panel-small` → `panel-smol` produced a
 correct root-class diff and exit code 1; reverted, back to green.
 
-### Where this stopped
-
-Waves 0 and 1 are complete, green and pushed. Waves 2–7 are untouched and the plan for them is
-unchanged. The next agent starts at **Wave 2 (form components)** and should read §10 first — the
-normalisation tables in `scripts/lib/normalize-html.mjs` already carry entries for every remaining
-component's host tag, so new fixtures should slot in without touching the harness.
-
 ### Wave 2 — three real harness bugs found (the tables above were wrong, not just incomplete)
 
 The claim in "Where this stopped" above — that the pre-populated normalisation tables were correct
@@ -482,3 +475,92 @@ trusting the table:
    Wave 2 fixture for `Switch`/`Chips` wraps the tested element in a neutral `<div>` (both sides) for
    this reason. This will matter again for `Modal`, `Tooltip`, `Tabs` in Wave 3, and any bare
    `Dropdown`-item-only fixture in Wave 4 — none of those are safe as a fixture's own root either.
+
+### Wave 3 — portals can't be parity-tested via `renderToStaticMarkup`; two more table bugs
+
+`react-dom/server`'s `renderToStaticMarkup` **throws** ("Target container is not a DOM element")
+on any `createPortal` whose target doesn't exist — confirmed with a two-line repro before writing
+`<Modal>`/`<Tooltip>` — it does not silently render nothing. Both components guard their portal
+behind a client-only `mounted` flag (`useState(false)` flipped in a `useEffect`), so under
+`renderToStaticMarkup` they correctly produce **no markup at all**, and `parity.mjs`'s "React
+element produced no markup" check treats that as a fixture _error_, not a comparable empty state.
+**Neither has a `fixtures.tsx` entry.** This is not a gap in coverage so much as a property of the
+tool: a portal fundamentally cannot be exercised by a pure string-rendering pass. Both are instead
+covered by focused `scripts/react-behaviour.mjs` cases (live DOM, portals render for real) — exactly
+the two bullets §5.2 already called out for them, which in hindsight was the plan anticipating this.
+`<Lightbox>` has no such problem and keeps a normal fixture: its overlay is built lazily on click
+(matching `lightbox.ts`'s own `open()`), so the _default_ render has no dialog on either side.
+
+Two more `normalize-html.mjs` table corrections, same root cause as Wave 2's chips/tabs finding:
+`mosni-tabs` and `mosni-lightbox` were also in `RENAMED_HOSTS` and belong in `UNWRAPPED_HOSTS`
+(neither self-classes its own host — `tabs.ts` builds `div.tabs` as a child and appends it;
+`lightbox.ts` only classes the `<img>` it enhances, never `this`). Moved both, with wrapping-div
+fixtures per Wave 2's established rule.
+
+One new normalization: `<details name="…">` (the `exclusive` accordion group correlator) is
+stripped in `normalizeAttributes`, scoped to `<details>` only (not added to the general
+`ID_REFERENCING_ATTRS`, which would also strip real content like `<input name="email">`). Two
+reasons converge here: it's semantically an opaque, generated cross-reference (the same shape as an
+id), _and_ jsdom v29.1.1 does not implement `<details>.name` as a reflected property at all
+(`"name" in details` is `false`), so the element side could never show it regardless of value — the
+`exclusive` variant could not otherwise be parity-tested at all under this jsdom version.
+
+### Wave 4 — the JSX `IntrinsicElements` augmentation was broken for every consumer, silently
+
+The biggest finding of the whole plan so far, and one that had nothing to do with fixtures: building
+`<LoginButton>` (D-R1's sanctioned exception, the one component that renders a raw `<mosni-*>` tag
+in JSX) was **the first time anything in this repo actually type-used a `<mosni-*>` tag** — every
+fixture in Waves 1–3 always went through a `<PascalCase>` React component, never the raw custom
+element. `elements.d.ts` (Wave 0, D-R9 step 1's whole deliverable) used
+`declare global { namespace JSX { interface IntrinsicElements { … } } }`, which was correct for
+React ≤18's ambient-global JSX types but is **silently ineffective** with `@types/react` 19 +
+`"jsx": "react-jsx"`: React 19 moved `IntrinsicElements` into `declare namespace React { namespace
+JSX { … } }`, and the automatic JSX runtime resolves types through the `JSX` namespace **exported
+by `react/jsx-runtime`** (itself `export { JSX } from "react"`), not the bare global namespace. The
+augmentation merged with nothing; every `<mosni-*>` tag failed
+`Property 'mosni-header' does not exist on type 'JSX.IntrinsicElements'` the moment anyone actually
+wrote one — `npm run verify` had been green for three whole waves without ever catching it, because
+nothing exercised the path. Fixed in `scripts/gen-element-types.mjs`: emit
+`declare module "react" { namespace JSX { interface IntrinsicElements { … } } }` instead (verified
+against a throwaway `tsc` run before changing the generator); regenerated `elements.d.ts` accordingly.
+**This means D-R9 step 1 was silently broken for every `mosni/files`-style consumer since Wave 0** —
+`import "@mosni/react/elements"` would have type-checked fine (a side-effect import always
+"succeeds" syntactically) while doing precisely nothing. Worth flagging prominently in Wave 5's docs
+and Wave 6's migration doc: this fix landed in Wave 4, so any earlier tarball (`mosni-react-0.1.0.tgz`
+built before this commit) has the broken version.
+
+Also implemented in this wave, no surprises: `<Dropdown>`/`<DropdownItem>` (all four dismissal paths
+— trigger click, Escape-returns-focus, outside pointerdown, select-fires-and-closes — covered in
+`react-behaviour.mjs`, matching §5.2 exactly), `<Code>` (Prism highlighting genuinely never runs in
+either harness — the lazy chunk's `<script src>` never fetches under plain jsdom, exactly the same
+`smoke.mjs`-documented limitation as the custom element's own Prism/icon chunks — so both sides stay
+unhighlighted and compare cleanly), `<Icon>` (renders a **classless** `<span>`, not `span.mosni-icon`
+as §4's table literally says — confirmed empirically that `<mosni-icon>` never carries a class even
+once painted, and there is no `.mosni-icon` SCSS rule to justify inventing one), `<Toast>`/`useToast`
+(pure delegation to `window.mosni.toast`, no new host), and `<LoginButton>` (confirmed empirically
+that `size`/`text`/`loading` reach the custom element as plain attributes via `setAttribute`, not
+properties — `login-button.ts` never defines them as class accessors, so `"loading" in el` is
+`false` and React's custom-element prop handling falls back to attributes for plain booleans/strings,
+which is exactly what `login-button.ts`'s own `hasAttribute("loading")` reads).
+
+Also implemented, closing a gap left open since Wave 0: **§5.3's `check-shape.mjs` coverage check**
+("every tag in `meta.ts` has a corresponding export … and every documented attribute has a camelCase
+prop") was never actually written — Wave 0's own task list called for it, but only the
+tarball/dependency-shape half of §5.3 (`assertReactPackageShape`) ever landed. Added
+`assertReactApiCoverage`: derives the expected PascalCase export name and camelCase prop name from
+each `meta.ts` tag/attribute (kebab→Pascal/camel is systematic and holds for all 21 tags, verified),
+and textually scans `index.ts` / the component's own `.tsx` source for them — the same
+substring/marker-based check style this file already uses elsewhere (`PRISM_MARKER`, `ICON_MARKER`),
+not a full TS-compiler-API type check. One documented exception: `mosni-tab`'s `selected` has no
+React-side counterpart, because §4's own table deliberately lifts selection to the parent `<Tabs>`
+(`selectedIndex`/`defaultSelectedIndex`) rather than repeating a boolean on every `<Tab>` — this is
+the one intentional, plan-sanctioned gap, allowlisted explicitly rather than silently passed.
+
+### Where this stopped
+
+Waves 0–4 are complete, green, and pushed. `npm run verify` covers 38 parity fixtures and 8
+behaviour cases across every Wave 0–4 component. Waves 5 (docs) and 6 (contract + hand-off) are
+next, followed by the optional Wave 7. Read this whole §10 before starting Wave 5 — in particular
+the Wave 4 JSX-augmentation finding, which affects what the docs need to say about
+`@mosni/react/elements`, and the portal/parity limitation from Wave 3, which is exactly the kind of
+thing Wave 5's React docs section should mention for `<Modal>`/`<Tooltip>` consumers.

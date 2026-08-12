@@ -10,9 +10,13 @@ import {
   Accordion,
   AccordionItem,
   Chips,
+  Code,
+  Dropdown,
+  DropdownItem,
   Field,
   Footer,
   Header,
+  Icon,
   Layout,
   Lightbox,
   Logo,
@@ -389,5 +393,73 @@ export const cases: ParityCase[] = [
         </Tabs>
       </div>
     ),
+  },
+
+  // --- Wave 4: Dropdown, DropdownItem, Code, Icon -----------------------------------------------
+  //
+  // mosni-dropdown IS in RENAMED_HOSTS (§10 corrected this from Wave 0/1's UNWRAPPED_HOSTS entry -
+  // dropdown.ts really does `classList.add("dropdown")` on itself), so it is safe as a fixture's
+  // own root, unlike Switch/Chips/Tabs/Lightbox/Accordion.
+
+  {
+    name: "mosni-dropdown/default",
+    html: `<mosni-dropdown label="Actions"><mosni-dropdown-item value="a">Edit</mosni-dropdown-item><mosni-dropdown-item value="b" variant="danger">Delete</mosni-dropdown-item></mosni-dropdown>`,
+    element: (
+      <Dropdown label="Actions">
+        <DropdownItem value="a">Edit</DropdownItem>
+        <DropdownItem value="b" variant="danger">
+          Delete
+        </DropdownItem>
+      </Dropdown>
+    ),
+  },
+  {
+    // A meaningful variant per §5.1: icon-only trigger (text moves to aria-label).
+    name: "mosni-dropdown/icon-only",
+    html: `<mosni-dropdown label="More" icon-only><mosni-dropdown-item value="a">Edit</mosni-dropdown-item></mosni-dropdown>`,
+    element: (
+      <Dropdown label="More" iconOnly>
+        <DropdownItem value="a">Edit</DropdownItem>
+      </Dropdown>
+    ),
+  },
+
+  {
+    name: "mosni-code/default",
+    html: `<mosni-code language="ts">const x = 1;</mosni-code>`,
+    element: <Code language="ts">{"const x = 1;"}</Code>,
+  },
+  {
+    name: "mosni-code/no-copy",
+    html: `<mosni-code language="ts" no-copy>const x = 1;</mosni-code>`,
+    element: (
+      <Code language="ts" noCopy>
+        {"const x = 1;"}
+      </Code>
+    ),
+  },
+  {
+    name: "mosni-code/no-header",
+    html: `<mosni-code language="ts" no-header>const x = 1;</mosni-code>`,
+    element: (
+      <Code language="ts" noHeader>
+        {"const x = 1;"}
+      </Code>
+    ),
+  },
+
+  {
+    // Both sides render an empty span in this harness (react-plan.md §10): the public icon chunk's
+    // script-src injection never actually fetches under plain jsdom (no resource loader configured
+    // - confirmed empirically, and the SAME reason smoke.mjs's mosni-code assertions never check
+    // for Prism token spans either), so <mosni-icon> never reaches its `iconsLoaded` state despite
+    // window.mosniIcons already existing, and <Icon>'s effect-driven paint never runs synchronously
+    // under renderToStaticMarkup. This still earns its place as a real structural check (root tag
+    // excluded, empty children on both sides) - scripts/react-behaviour.mjs is not extended for
+    // Icon specifically since there is nothing further to verify that isn't identical to the Code/
+    // Tooltip lazy-chunk pattern already covered.
+    name: "mosni-icon/default",
+    html: `<mosni-icon name="check"></mosni-icon>`,
+    element: <Icon name="check" />,
   },
 ];

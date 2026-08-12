@@ -35,3 +35,20 @@ export { Tabs } from "./components/Tabs";
 export type { TabsProps } from "./components/Tabs";
 export { Tab } from "./components/Tab";
 export type { TabProps } from "./components/Tab";
+export { Dropdown } from "./components/Dropdown";
+export type { DropdownProps } from "./components/Dropdown";
+export { DropdownItem } from "./components/DropdownItem";
+export type { DropdownItemProps } from "./components/DropdownItem";
+export { Code } from "./components/Code";
+export type { CodeProps } from "./components/Code";
+export { Icon } from "./components/Icon";
+export type { IconProps } from "./components/Icon";
+export { Toast, useToast } from "./components/Toast";
+export type {
+  ToastProps,
+  ToastOptions,
+  ToastHandle,
+  ToastVariant,
+} from "./components/Toast";
+export { LoginButton } from "./components/LoginButton";
+export type { LoginButtonProps } from "./components/LoginButton";

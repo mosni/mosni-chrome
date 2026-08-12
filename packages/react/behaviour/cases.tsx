@@ -7,7 +7,18 @@ import { act, useState } from "react";
 import type { ReactElement } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
-import { Chips, Field, Modal, Switch, Tab, Tabs, Tooltip } from "../src/index";
+import {
+  Chips,
+  Dropdown,
+  DropdownItem,
+  Field,
+  LoginButton,
+  Modal,
+  Switch,
+  Tab,
+  Tabs,
+  Tooltip,
+} from "../src/index";
 
 export interface BehaviourCase {
   name: string;
@@ -408,6 +419,143 @@ export const cases: BehaviourCase[] = [
         document.addEventListener = originalAdd;
         document.removeEventListener = originalRemove;
       }
+    },
+  },
+
+  {
+    name: "Dropdown: opens on click, Escape closes + returns focus, outside pointerdown closes, selecting fires onSelect and closes",
+    run: async () => {
+      let selected: string | undefined;
+
+      const { container, unmount } = mount(
+        <div>
+          <Dropdown
+            label="Actions"
+            onSelect={(value) => {
+              selected = value;
+            }}
+          >
+            <DropdownItem value="a">Edit</DropdownItem>
+            <DropdownItem value="b">Delete</DropdownItem>
+          </Dropdown>
+          <button type="button" data-action="outside" />
+        </div>,
+      );
+
+      const trigger = () =>
+        container.querySelector(".dropdown-trigger") as HTMLButtonElement;
+      const menu = () =>
+        container.querySelector(".dropdown-menu") as HTMLDivElement;
+      const outsideButton = container.querySelector(
+        '[data-action="outside"]',
+      ) as HTMLButtonElement;
+      // dropdown.ts defers attaching its outside-click/scroll listeners by one macrotask so the
+      // SAME click that opened the menu doesn't immediately dismiss it - Dropdown.tsx mirrors that
+      // exactly, so every "open, then check outside-dismissal" step below waits a real tick first.
+      const waitForListeners = () =>
+        act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+        });
+
+      assert(menu().hidden === true, "starts closed");
+
+      // Path 1: opens on trigger click.
+      click(trigger());
+      assert(menu().hidden === false, "clicking the trigger opens the menu");
+      assert(
+        trigger().getAttribute("aria-expanded") === "true",
+        "aria-expanded reflects the open state",
+      );
+
+      // Path 2: Escape closes and returns focus to the trigger.
+      act(() => {
+        menu().dispatchEvent(
+          new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+        );
+      });
+      assert(menu().hidden === true, "Escape closes the menu");
+      assert(
+        document.activeElement === trigger(),
+        "Escape returns focus to the trigger",
+      );
+
+      // Path 3: outside pointerdown closes.
+      click(trigger());
+      assert(menu().hidden === false, "re-opens for the outside-click check");
+      await waitForListeners();
+      act(() => {
+        outsideButton.dispatchEvent(
+          new PointerEvent("pointerdown", { bubbles: true }),
+        );
+      });
+      assert(menu().hidden === true, "outside pointerdown closes the menu");
+
+      // Path 4: selecting an item fires onSelect(value) and closes.
+      click(trigger());
+      await waitForListeners();
+      const items = () =>
+        Array.from(
+          container.querySelectorAll(".dropdown-item"),
+        ) as HTMLButtonElement[];
+      click(items()[1]);
+      assert(selected === "b", "selecting an item fires onSelect(value)");
+      assert(menu().hidden === true, "selecting an item closes the menu");
+
+      unmount();
+    },
+  },
+
+  {
+    name: "LoginButton: click fires onLogin via mosni:login; loading suppresses it",
+    run: () => {
+      let loginCount = 0;
+
+      function Harness(): ReactElement {
+        const [loading, setLoading] = useState(false);
+        return (
+          <div>
+            <LoginButton
+              loading={loading}
+              onLogin={() => {
+                loginCount += 1;
+              }}
+            />
+            <button
+              type="button"
+              data-action="toggle-loading"
+              onClick={() => setLoading((was) => !was)}
+            />
+          </div>
+        );
+      }
+
+      const { container, unmount } = mount(<Harness />);
+      const el = container.querySelector(
+        "mosni-login-button",
+      ) as HTMLElement & { shadowRoot: ShadowRoot | null };
+      assert(!!el.shadowRoot, "mosni-login-button upgraded with a shadow root");
+      const shadowButton = el.shadowRoot!.querySelector(
+        "button.login",
+      ) as HTMLButtonElement;
+
+      click(shadowButton);
+      assert(
+        loginCount === 1,
+        "clicking the real shadow-DOM button fires onLogin via mosni:login",
+      );
+
+      click(container.querySelector('[data-action="toggle-loading"]'));
+      assert(
+        el.hasAttribute("loading"),
+        "the `loading` prop reaches the element as a real attribute",
+      );
+      click(shadowButton);
+      assert(
+        loginCount === 1,
+        "loading suppresses further mosni:login dispatches",
+      );
+
+      unmount();
     },
   },
 ];

@@ -46,8 +46,8 @@ function renderTagInterface(meta) {
   const props = meta.attributes
     .map((attr) => `  "${attr.name}"?: ${tsType(attr)};`)
     .join("\n");
-  return `    "${meta.tag}": React.DetailedHTMLProps<
-      React.HTMLAttributes<HTMLElement>,
+  return `    "${meta.tag}": DetailedHTMLProps<
+      HTMLAttributes<HTMLElement>,
       HTMLElement
     > & {
 ${props}
@@ -55,8 +55,8 @@ ${props}
 }
 
 // Hand-written: see the file header comment for why this one isn't sourced from meta.ts.
-const LOGIN_BUTTON_INTERFACE = `    "mosni-login-button": React.DetailedHTMLProps<
-      React.HTMLAttributes<HTMLElement>,
+const LOGIN_BUTTON_INTERFACE = `    "mosni-login-button": DetailedHTMLProps<
+      HTMLAttributes<HTMLElement>,
       HTMLElement
     > & {
       text?: string;
@@ -78,9 +78,16 @@ async function generate() {
 //
 // Regenerate after changing src/js/components/meta.ts; \`npm run verify\` runs \`--check\` mode and
 // fails the build if this file is stale.
-import type * as React from "react";
-
-declare global {
+//
+// Augments "react"'s OWN JSX namespace (React.JSX), not a bare \`declare global { namespace JSX }\`
+// (react-plan.md §10): @types/react 19 moved JSX.IntrinsicElements from the global JSX namespace
+// into \`declare namespace React { namespace JSX { … } }\`, and with "jsx": "react-jsx" (automatic
+// runtime), TypeScript resolves JSX types through the JSX namespace exported by "react/jsx-runtime"
+// (itself a re-export of React.JSX) - a global-namespace augmentation silently merges with nothing
+// under this scheme, and every <mosni-*> tag fails "does not exist on type JSX.IntrinsicElements"
+// the moment anything actually authors one. Caught building <LoginButton> (Wave 4), the first place
+// in this repo that ever wrote a raw <mosni-*> tag in TSX - nothing before it exercised this path.
+declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
 ${tagInterfaces}

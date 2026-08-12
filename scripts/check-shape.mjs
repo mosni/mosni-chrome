@@ -1,6 +1,7 @@
 import { readFile, readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { bundleAndImport, cleanupScratch } from "./lib/bundle-and-import.mjs";
 
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const distDir = path.join(rootDir, "dist");
@@ -173,6 +174,85 @@ async function assertReactPackageShape() {
   }
 }
 
+// meta.ts's tag/attribute naming is kebab-case throughout (mosnicat.md's own contract); the React
+// side is camelCase throughout (react-plan.md §3) - both conversions are systematic enough to
+// derive rather than hand-list, and every one of the 21 documented tags does follow it (verified:
+// mosni-menu-item -> MenuItem, filter-threshold -> filterThreshold, no-logo -> noLogo, etc).
+function toPascalCase(tag) {
+  return tag
+    .replace(/^mosni-/, "")
+    .split("-")
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join("");
+}
+function toCamelCase(attr) {
+  const [first, ...rest] = attr.split("-");
+  return (
+    first + rest.map((part) => part[0].toUpperCase() + part.slice(1)).join("")
+  );
+}
+
+// react-plan.md §4's own component table deliberately gives <Tab> no per-tab `selected` prop -
+// selection is lifted to the PARENT <Tabs> (`selectedIndex`/`defaultSelectedIndex`), a more
+// idiomatic React shape than a boolean repeated on every child. This is the one documented,
+// intentional gap between a tag's attribute set and its React Props type; every other tag's
+// attributes must show up as camelCase props with no exceptions.
+const ATTRIBUTE_COVERAGE_EXCEPTIONS = new Set(["mosni-tab:selected"]);
+
+// D-R9's converse (§5.3): every documented tag needs a React export, and every documented
+// attribute needs a camelCase prop on that component - otherwise the React layer can silently fall
+// behind the custom elements as meta.ts grows new attributes and nothing catches it. A textual scan
+// (not full type introspection) matches this file's existing style of structural/marker checks
+// (PRISM_MARKER, ICON_MARKER, the forbidden-string list above) rather than pulling in the TS
+// compiler API for one check.
+async function assertReactApiCoverage() {
+  const { componentMeta } = await bundleAndImport(
+    path.join(rootDir, "src/js/components/meta.ts"),
+  );
+  const indexSrc = await readFile(
+    path.join(rootDir, "packages/react/src/index.ts"),
+    "utf8",
+  );
+  const componentsDir = path.join(rootDir, "packages/react/src/components");
+
+  for (const meta of componentMeta) {
+    const componentName = toPascalCase(meta.tag);
+    // Not a fixed `export { X }` substring: some exports share a line with a sibling (Toast's
+    // `export { Toast, useToast } from "./components/Toast";`) - a word-boundary match against any
+    // `export { … }` block is what actually matters.
+    const exportPattern = new RegExp(
+      `export\\s*\\{[^}]*\\b${componentName}\\b[^}]*\\}`,
+    );
+    if (!exportPattern.test(indexSrc)) {
+      throw new Error(
+        `packages/react/src/index.ts: missing an "export { ${componentName} }" for documented tag ${meta.tag} (§5.3)`,
+      );
+    }
+
+    const componentFile = path.join(componentsDir, `${componentName}.tsx`);
+    let componentSrc;
+    try {
+      componentSrc = await readFile(componentFile, "utf8");
+    } catch {
+      throw new Error(
+        `packages/react/src/components/${componentName}.tsx does not exist for documented tag ${meta.tag} (§5.3)`,
+      );
+    }
+
+    for (const attr of meta.attributes) {
+      if (ATTRIBUTE_COVERAGE_EXCEPTIONS.has(`${meta.tag}:${attr.name}`))
+        continue;
+      const camel = toCamelCase(attr.name);
+      if (!componentSrc.includes(camel)) {
+        throw new Error(
+          `packages/react/src/components/${componentName}.tsx: no "${camel}" prop found for ` +
+            `${meta.tag}'s documented "${attr.name}" attribute (§5.3)`,
+        );
+      }
+    }
+  }
+}
+
 async function main() {
   const entries = await readdir(distDir);
   for (const file of REQUIRED_ASSETS) {
@@ -189,10 +269,13 @@ async function main() {
   await assertIconSplit();
   await assertLoginButtonSelfContained();
   await assertReactPackageShape();
+  await assertReactApiCoverage();
+  await cleanupScratch();
   console.log("check-shape: OK -", entries.join(", "));
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
+  await cleanupScratch();
   console.error(err.message);
   process.exit(1);
 });

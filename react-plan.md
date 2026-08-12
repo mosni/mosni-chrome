@@ -339,15 +339,21 @@ Each step is independently shippable and independently revertable.
 
 ## 9. Acceptance criteria
 
-- [ ] `npm run verify` green, including parity, behaviour, icon-freshness and element-type-freshness checks
-- [ ] Every tag in `meta.ts` has a React export with a parity fixture (enforced by §5.3, not by review)
-- [ ] `packages/react/dist/index.js` bundles neither `react` nor `lucide`
-- [ ] `dist/mosni-react.tgz` and `dist/mosni-react-<version>.tgz` are emitted
-- [ ] Zero `window`/`document` access at module scope anywhere in `packages/react/src`
-- [ ] The docs page shows a **React** tab on every component section and a **React** nav section
-- [ ] `mosnicat.md` documents the React path as the third first-class authoring path
-- [ ] `docs/react-migration-files.md` exists; the `mosni/files` repo is untouched
-- [ ] No behavioural change to any existing custom element beyond the D-R8 pure-function swaps
+- [x] `npm run verify` green, including parity, behaviour, icon-freshness and element-type-freshness checks
+- [x] Every tag in `meta.ts` has a React export (enforced by §5.3's `assertReactApiCoverage`, added
+      Wave 4). **Caveat on "with a parity fixture":** `mosni-modal`/`mosni-tooltip` have a React
+      export but deliberately no `fixtures.tsx` entry — `react-dom/server` throws on a portal whose
+      target doesn't exist, so their structural parity genuinely cannot be checked via
+      `renderToStaticMarkup` (react-plan.md §10, Wave 3). Both are covered by
+      `scripts/react-behaviour.mjs` cases instead, which is what §5.2 asked for on these two tags
+      specifically. Every other tag has both.
+- [x] `packages/react/dist/index.js` bundles neither `react` nor `lucide`
+- [x] `dist/mosni-react.tgz` and `dist/mosni-react-<version>.tgz` are emitted
+- [x] Zero `window`/`document` access at module scope anywhere in `packages/react/src`
+- [x] The docs page shows a **React** tab on every component section and a **React** nav section
+- [x] `mosnicat.md` documents the React path as the third first-class authoring path
+- [x] `docs/react-migration-files.md` exists; the `mosni/files` repo is untouched
+- [x] No behavioural change to any existing custom element beyond the D-R8 pure-function swaps
 
 ## 10. Implementer notes
 
@@ -595,10 +601,42 @@ from `HEAD` (Wave 4's commit), silently discarding the whole wave's work, not ju
 "break something, verify red, put it back" check remembers `git stash`/a manual re-edit, not
 `git checkout`, when the file being poked has uncommitted changes worth keeping.
 
+### Wave 6 — contract + hand-off, no new findings
+
+Documentation-only, exactly per §7's Wave 6 list — no code or harness changes, so nothing here
+needed re-verification beyond confirming `npm run verify` was still green afterward:
+
+- `mosnicat.md` gained a full "**React path**" section (D-R1–D-R3 + D-R9 as contract, a condensed
+  component table, the version-locking caveat) placed right after "Components", and the "two
+  authoring paths" line (both occurrences — the summary paragraph and the flash-guard paragraph's
+  back-reference to it) now reads "three". One correction caught while writing the table: `Icon`
+  renders a **classless** `span`, not `span.mosni-icon` as §4's own table literally says (already
+  corrected in the component itself and in `fixtures.tsx`'s comment back in Wave 4 — this is just
+  the same fact landing in the contract doc too, not a new finding).
+- `README.md` gained a "React apps" subsection with the tarball-dependency snippet and a minimal
+  usage example, right after the existing bootstrap script tag.
+- `docs/react-migration-files.md` is the ready-to-run recipe from §8, expanded with concrete
+  before/after snippets for the two call sites §8 names (`PreviewCard.tsx`'s `CodeBlock` →
+  `<Code>`, `FileBrowser.tsx`'s tabs/dropdown → `<Tabs>`/`<Dropdown>`) and a prominent pointer at
+  the top to the Wave 4 JSX-augmentation finding, since a tarball built before that fix would make
+  Step 1 silently do nothing. `mosni/files` itself was never touched — no `add_repo`, no writes
+  outside this repo.
+
 ### Where this stopped
 
-Waves 0–5 are complete, green, and pushed. `npm run verify` covers 38 parity fixtures and 8
-behaviour cases across every Wave 0–4 component, plus a React tab (with a live demo rendered from
-a real `.tsx` file) on all 18 applicable doc sections and a new top-level React nav section. Wave 6
-(contract + hand-off: `mosnicat.md`'s React section, `README.md`, `docs/react-migration-files.md`)
-is next, followed by the optional Wave 7.
+**Waves 0–6 are complete, green, and pushed.** `npm run verify` covers `tsc` (root + the
+`packages/react` project), the core build, `check-shape` (including the §5.3 API-coverage check
+added in Wave 4), icon/element-type freshness, 38 `parity.mjs` fixtures, 8
+`react-behaviour.mjs` cases, `smoke.mjs` (including 18 new React-tab doc checks), and `prettier`.
+Every §9 acceptance criterion is checked off above, with one honest caveat noted inline
+(`mosni-modal`/`mosni-tooltip` have no parity fixture, by necessity, not oversight).
+
+Wave 7 (class-only primitives - `Button`, `Badge`, `Alert`, `Spinner`, `Progress`, `Status`,
+`Divider`, `Table`, `Prose`, `Container`, `ContentContainer`) is explicitly optional per §7 and was
+**not started** — Waves 0–6 being fully done and green was prioritised over partial Wave 7 progress,
+per the plan's own "skipping this wave entirely is an acceptable outcome; leaving Waves 0–6
+half-done is not." A future session can pick it up cleanly: it needs the same parity-fixture
+treatment against the existing class-only `docs/examples/*.html` fixtures (`btn.html`, `badge.html`,
+etc.), following the exact pattern established in Waves 1–4, and — per this wave's own docs
+generalisation — each new component automatically gets a docs React tab for free once a matching
+`docs/examples/react/<id>.tsx` is added, no further `docs.mjs` changes required.

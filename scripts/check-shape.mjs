@@ -23,6 +23,14 @@ const BARE_ESM_IMPORT_PATTERN = /\bimport\s[^;]*?from\s*['"](?!\.)/;
 const PRISM_MARKER = "languages.markup";
 const ICON_MARKER = "M12 15v5s3.03";
 
+// A README.md mentions of "react" would false-positive a naive substring search, so these look for
+// an actual bare import/require of the package - the same shape BARE_IMPORT_PATTERN/
+// BARE_ESM_IMPORT_PATTERN already check for the core bundles, just anchored to these two names.
+const REACT_IMPORT_PATTERN =
+  /\b(?:require\(\s*['"]react|from\s*['"]react(?:\/|['"]))/;
+const LUCIDE_IMPORT_PATTERN =
+  /\b(?:require\(\s*['"]lucide|from\s*['"]lucide['"])/;
+
 async function assertDependencyFree(file) {
   const contents = await readFile(path.join(distDir, file), "utf8");
   if (
@@ -98,6 +106,37 @@ async function assertLoginButtonSelfContained() {
   }
 }
 
+// D-R5 (distribution is a tarball, not a registry) + D-R4 (zero runtime dependencies) — see §5.3.
+async function assertReactPackageShape() {
+  const pkg = JSON.parse(
+    await readFile(path.join(rootDir, "packages/react/package.json"), "utf8"),
+  );
+  const versionedName = `mosni-react-${pkg.version}.tgz`;
+  const entries = await readdir(distDir);
+  if (!entries.includes(versionedName)) {
+    throw new Error(`dist/ is missing required asset: ${versionedName}`);
+  }
+  if (!entries.includes("mosni-react.tgz")) {
+    throw new Error("dist/ is missing required asset: mosni-react.tgz");
+  }
+
+  const bundle = await readFile(
+    path.join(rootDir, "packages/react/dist/index.js"),
+    "utf8",
+  );
+  if (REACT_IMPORT_PATTERN.test(bundle)) {
+    throw new Error(
+      "packages/react/dist/index.js: must not bundle react - react must stay external (D-R4)",
+    );
+  }
+  if (LUCIDE_IMPORT_PATTERN.test(bundle)) {
+    throw new Error(
+      "packages/react/dist/index.js: must not bundle lucide - the nine internal glyphs are baked " +
+        "in as static JSX by scripts/gen-react-icons.mjs instead (D-R7)",
+    );
+  }
+}
+
 async function main() {
   const entries = await readdir(distDir);
   for (const file of REQUIRED_ASSETS) {
@@ -113,6 +152,7 @@ async function main() {
   await assertLeanCore();
   await assertIconSplit();
   await assertLoginButtonSelfContained();
+  await assertReactPackageShape();
   console.log("check-shape: OK -", entries.join(", "));
 }
 

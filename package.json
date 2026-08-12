@@ -5,7 +5,7 @@
   "description": "mosnicat — the shared visual chrome / design system for the mosni stack",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "verify": "tsc --noEmit && node scripts/build.mjs && node scripts/check-shape.mjs && node scripts/smoke.mjs && prettier --check ."
+    "verify": "tsc --noEmit && tsc -p packages/react/tsconfig.json --noEmit && node scripts/build.mjs && node scripts/check-shape.mjs && node scripts/gen-react-icons.mjs --check && node scripts/gen-element-types.mjs --check && node scripts/smoke.mjs && prettier --check ."
   },
   "devDependencies": {
     "@types/react": "^19.2.18",

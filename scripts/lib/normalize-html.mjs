@@ -21,6 +21,12 @@ const ID_REFERENCING_ATTRS = new Set([
 // authored content and must still be compared.
 const MEASUREMENT_STYLE_PROPS = new Set(["top", "left", "position"]);
 
+// Reformats every KEPT declaration to a single canonical "prop: value" spacing, not just filters
+// measurement props out: a live DOM's `style` attribute (what jsdom serializes for the
+// custom-element side) always has a space after the colon, while React's inline `style={{…}}`
+// serializes with none (`max-height:13rem`) - real, authored styles like chips' `maxHeight` would
+// otherwise fail the comparison on formatting alone, not on any actual difference in the
+// declaration.
 function stripMeasurementStyle(styleValue) {
   const kept = styleValue
     .split(";")
@@ -29,18 +35,32 @@ function stripMeasurementStyle(styleValue) {
     .filter((decl) => {
       const prop = decl.split(":")[0]?.trim().toLowerCase();
       return !MEASUREMENT_STYLE_PROPS.has(prop);
+    })
+    .map((decl) => {
+      const [prop, ...rest] = decl.split(":");
+      return `${prop.trim()}: ${rest.join(":").trim()}`;
     });
   return kept.join("; ");
 }
 
 // The two paths differ in exactly one systematic way beyond ids and measurements: the custom
 // element leaves its own HOST tag in the DOM, and the React component does not (D-R1). There are
-// two shapes of that, and they need opposite treatment - which is why this is two tables and not
-// one. Both are applied to BOTH sides; on the React side they are no-ops, which is the point (a
-// rule that only ever fires on one side would be hiding drift rather than normalizing noise).
+// two shapes of that, and they need opposite treatment - which is why this is two tables (plus the
+// small IMPLICIT_HOST_CLASS exception below, for the one tag that styles itself through a bare tag
+// selector instead of a class). Both tables are applied to BOTH sides; on the React side they are
+// no-ops, which is the point (a rule that only ever fires on one side would be hiding drift rather
+// than normalizing noise).
 //
 // 1. RENAMED: the host IS the component's box, and React renders the same box under a plain tag.
 //    Its class list and children must still match exactly - only the tag name differs.
+// Membership here is NOT "which SCSS twin exists" - it is "does the custom element's JS put the
+// styled class on ITS OWN host, or on a child it generates?" Verified against each component's
+// render() individually (react-plan.md §10 records two the plan's own draft table got backwards):
+// mosni-chips, mosni-tabs, and mosni-lightbox all build their real, classed box as a CHILD and
+// leave the host itself class-less - renaming the host would produce a spurious extra wrapper level
+// with an empty class, not the single classed box React renders - so they belong in UNWRAPPED_HOSTS
+// below, not here. mosni-dropdown is the opposite mistake: dropdown.ts DOES `classList.add("dropdown")`
+// on itself, so it belongs here, not in UNWRAPPED_HOSTS.
 const RENAMED_HOSTS = new Map([
   ["mosni-layout", "div"],
   ["mosni-header", "header"],
@@ -49,17 +69,34 @@ const RENAMED_HOSTS = new Map([
   ["mosni-panel", "div"],
   ["mosni-logo", "span"],
   ["mosni-field", "div"],
-  ["mosni-chips", "div"],
   ["mosni-code", "div"],
   ["mosni-icon", "span"],
   ["mosni-accordion", "div"],
-  ["mosni-tabs", "div"],
-  ["mosni-lightbox", "span"],
+  ["mosni-dropdown", "div"],
 ]);
 
+// mosni-accordion is the one RENAMED_HOSTS tag that styles itself through a bare TAG selector
+// (`mosni-accordion { … }` in _accordion.scss) rather than a class on its own host - D-R11's
+// `.accordion` comma twin exists precisely so the class-path and React equivalents (which cannot
+// select by custom-element tag) get the same rules via a class instead. accordion.ts never adds
+// that class to itself (confirmed: no `classList.add` anywhere in the file), so a plain
+// attribute-copying rename would produce a class-less div - CSS-equivalent to `mosni-accordion`,
+// but not attribute-equal to `.accordion`, and this harness only compares attributes. This table
+// adds back the class the tag-selector styling implies, so the comparison reflects the real CSS
+// equivalence D-R11 established instead of failing on a literal (and, for this tag, never-true)
+// class match. Every other RENAMED_HOSTS tag needs no entry here because it already self-classes.
+const IMPLICIT_HOST_CLASS = new Map([["mosni-accordion", "accordion"]]);
+
 // 2. UNWRAPPED: the host exists ONLY because a custom element needs somewhere to live, and carries
-//    no box of its own (each is `display: contents` or equivalent in the SCSS). React renders the
-//    generated child directly with no wrapper, so the host is replaced by its own children.
+//    no box of its own - either by design (`display: contents` or equivalent in the SCSS, and the
+//    generated/enhanced box is a CHILD the host merely holds) or because the host's own children
+//    pass through untouched (mosni-tooltip's anchor, mosni-lightbox's <img>). React renders the
+//    generated/enhanced child directly with no wrapper, so the host is replaced by its own children.
+//    A fixture using one of these tags AS ITS OWN ROOT must wrap it in a neutral element (both
+//    sides) - the root itself is exempt from this table (§5.1: root tag name is excluded from the
+//    comparison already), so an unwrapped-eligible tag left as the fixture root would compare its
+//    own [never-classed] self against React's [classed] root instead of unwrapping down to the
+//    child that actually carries the class.
 const UNWRAPPED_HOSTS = new Set([
   "mosni-menu-item",
   "mosni-tab",
@@ -67,7 +104,9 @@ const UNWRAPPED_HOSTS = new Set([
   "mosni-modal",
   "mosni-switch",
   "mosni-tooltip",
-  "mosni-dropdown",
+  "mosni-chips",
+  "mosni-tabs",
+  "mosni-lightbox",
 ]);
 
 // A custom element keeps the attributes it was CONFIGURED with sitting on its host after render()
@@ -106,6 +145,8 @@ function normalizeHostTags(root, attributesByTag) {
     const renamed = RENAMED_HOSTS.get(tag);
     if (renamed) {
       stripConfigAttributes(el, attributesByTag);
+      const implicitClass = IMPLICIT_HOST_CLASS.get(tag);
+      if (implicitClass) el.classList.add(implicitClass);
       renameElement(el, renamed);
     }
   };
@@ -200,11 +241,22 @@ const ASSET_ORIGIN_CANONICAL = "https://ui.mosni.dev/";
  * @returns {{ className: string, innerHtml: string }}
  */
 export function normalizeHost(host, attributesByTag = new Map()) {
-  normalizeHostTags(host, attributesByTag);
-  normalizeAttributes(host);
-  const className = host.getAttribute("class") ?? "";
+  // Operate on a CLONE, never the live host: some documented config attributes (mosni-field's
+  // `error`, the same shape as mosni-modal's `open`/mosni-switch's `checked`) are also OBSERVED,
+  // meaning the custom element is still watching them for live updates. Calling
+  // `el.removeAttribute(name)` on the connected original would fire `attributeChangedCallback` for
+  // real and undo the very state (the .error class, aria-invalid, the .field-error paragraph) the
+  // comparison exists to check - discovered via mosni-field/error failing parity with the WRONG
+  // side missing its error markup (react-plan.md §10). `cloneNode(true)` sidesteps this cleanly:
+  // every component's `attributeChangedCallback` guards on `this.rendered` (set only by
+  // `connectedCallback`), and a clone is never connected, so its callbacks stay inert no matter
+  // what this function goes on to mutate.
+  const clone = host.cloneNode(true);
+  normalizeHostTags(clone, attributesByTag);
+  normalizeAttributes(clone);
+  const className = clone.getAttribute("class") ?? "";
   const innerHtml = collapseWhitespaceBetweenTags(
-    Array.from(host.childNodes).map(serializeNode).join(""),
+    Array.from(clone.childNodes).map(serializeNode).join(""),
   ).replace(ASSET_ORIGIN_ARTIFACT, ASSET_ORIGIN_CANONICAL);
   return { className, innerHtml };
 }

@@ -7,6 +7,8 @@
 // prose only makes a failure diff harder to read.
 import type { ReactElement } from "react";
 import {
+  Chips,
+  Field,
   Footer,
   Header,
   Layout,
@@ -14,6 +16,7 @@ import {
   Menu,
   MenuItem,
   Panel,
+  Switch,
 } from "../src/index";
 
 export interface ParityCase {
@@ -164,6 +167,126 @@ export const cases: ParityCase[] = [
       >
         <p>main</p>
       </Layout>
+    ),
+  },
+
+  // --- Wave 2: Field, Switch, Chips -----------------------------------------------------------
+  //
+  // Field's `value` and Switch's `checked` are deliberately NEVER exercised here (react-plan.md
+  // §10): field.ts/switch.ts apply both as PROPERTY writes on the generated control, and neither is
+  // a reflected IDL property (unlike e.g. `disabled`/`type`) - a property write never updates the
+  // matching content attribute, so the custom element's serialized markup never shows either one no
+  // matter what a fixture asks for, while React's SSR always renders both as attributes. Comparing
+  // them here would fail on a real, confirmed element-side quirk, not a harness bug or drift -
+  // scripts/react-behaviour.mjs asserts the actual `.value`/`.checked` semantics against a live DOM
+  // instead, where the attribute/property distinction this trips over doesn't apply.
+
+  {
+    name: "mosni-field/text-default",
+    html: `<mosni-field label="Email" type="email" name="email"></mosni-field>`,
+    element: <Field label="Email" type="email" name="email" />,
+  },
+  {
+    name: "mosni-field/textarea",
+    html: `<mosni-field label="Bio" type="textarea"></mosni-field>`,
+    element: <Field label="Bio" type="textarea" />,
+  },
+  {
+    name: "mosni-field/select",
+    html: `<mosni-field label="Choice" type="select"></mosni-field>`,
+    element: <Field label="Choice" type="select" />,
+  },
+  {
+    name: "mosni-field/checkbox",
+    html: `<mosni-field label="Agree" type="checkbox"></mosni-field>`,
+    element: <Field label="Agree" type="checkbox" />,
+  },
+  {
+    name: "mosni-field/required-help",
+    html: `<mosni-field label="Name" required help="As on your passport"></mosni-field>`,
+    element: <Field label="Name" required help="As on your passport" />,
+  },
+  {
+    name: "mosni-field/error",
+    html: `<mosni-field label="Email" type="email" error="Invalid address"></mosni-field>`,
+    element: <Field label="Email" type="email" error="Invalid address" />,
+  },
+  {
+    // The enhance-first branch: an authored control wins over the generated one.
+    name: "mosni-field/authored-control-wins",
+    html: `<mosni-field label="Bio"><textarea rows="6"></textarea></mosni-field>`,
+    element: (
+      <Field label="Bio">
+        <textarea rows={6} />
+      </Field>
+    ),
+  },
+
+  {
+    // mosni-switch is a host-reset tag (D-R11) - never safe as a fixture's OWN root (see
+    // UNWRAPPED_HOSTS's comment in normalize-html.mjs), so both sides wrap it in a neutral <div>.
+    name: "mosni-switch/default",
+    html: `<div><mosni-switch label="On"></mosni-switch></div>`,
+    element: (
+      <div>
+        <Switch label="On" />
+      </div>
+    ),
+  },
+  {
+    name: "mosni-switch/disabled",
+    html: `<div><mosni-switch label="Off" disabled></mosni-switch></div>`,
+    element: (
+      <div>
+        <Switch label="Off" disabled />
+      </div>
+    ),
+  },
+
+  {
+    // Below filter-threshold (default 8): no filter box on either side. Values deliberately equal
+    // their labels - chips.ts derives the visible chip text from the checkbox's VALUE first
+    // (falling back to the wrapping <label>'s text only when value is empty), so a fixture whose
+    // value and label differ would show DIFFERENT text on the two sides for a reason that has
+    // nothing to do with the React path (see Chips.tsx's own comment on this).
+    name: "mosni-chips/below-threshold-none-selected",
+    html: `<div><mosni-chips><label><input type="checkbox" value="Apples"> Apples</label><label><input type="checkbox" value="Bananas"> Bananas</label><label><input type="checkbox" value="Cherries"> Cherries</label></mosni-chips></div>`,
+    element: (
+      <div>
+        <Chips
+          options={[
+            { value: "Apples", label: "Apples" },
+            { value: "Bananas", label: "Bananas" },
+            { value: "Cherries", label: "Cherries" },
+          ]}
+        />
+      </div>
+    ),
+  },
+  {
+    // At/above the filter threshold (8 options): the filter box appears, and one option is
+    // pre-selected (a `checked` attribute AUTHORED in the fixture HTML, parsed as literal markup
+    // rather than set via `.checked =` afterward - the one path that survives serialization on the
+    // element side, see the file-level comment above).
+    name: "mosni-chips/at-threshold-with-selection",
+    html: `<div><mosni-chips label="Fruit"><label><input type="checkbox" value="One" checked> One</label><label><input type="checkbox" value="Two"> Two</label><label><input type="checkbox" value="Three"> Three</label><label><input type="checkbox" value="Four"> Four</label><label><input type="checkbox" value="Five"> Five</label><label><input type="checkbox" value="Six"> Six</label><label><input type="checkbox" value="Seven"> Seven</label><label><input type="checkbox" value="Eight"> Eight</label></mosni-chips></div>`,
+    element: (
+      <div>
+        <Chips
+          label="Fruit"
+          value={["One"]}
+          options={[
+            { value: "One", label: "One" },
+            { value: "Two", label: "Two" },
+            { value: "Three", label: "Three" },
+            { value: "Four", label: "Four" },
+            { value: "Five", label: "Five" },
+            { value: "Six", label: "Six" },
+            { value: "Seven", label: "Seven" },
+            { value: "Eight", label: "Eight" },
+          ]}
+        />
+      </div>
     ),
   },
 ];

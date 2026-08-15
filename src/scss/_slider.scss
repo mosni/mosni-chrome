@@ -1,0 +1,116 @@
+@use "shared";
+
+mosni-slider {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+
+.slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.slider-label {
+  font-size: 0.85rem;
+  color: var(--mosni-text-soft);
+}
+
+.slider-track-wrap {
+  position: relative;
+  padding-block: 0.6rem;
+}
+
+.slider-input {
+  display: block;
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+
+  &::-webkit-slider-runnable-track {
+    height: 4px;
+    background: var(--mosni-surface-input);
+    border: 1px solid var(--mosni-border-muted);
+    border-radius: 999px;
+  }
+
+  &::-moz-range-track {
+    height: 4px;
+    background: var(--mosni-surface-input);
+    border: 1px solid var(--mosni-border-muted);
+    border-radius: 999px;
+  }
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    margin-top: -9px;
+    background: var(--mosni-purple);
+    border: none;
+    border-radius: 999px;
+    transition: background-color 120ms ease;
+  }
+
+  &::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--mosni-purple);
+    border: none;
+    border-radius: 999px;
+    transition: background-color 120ms ease;
+  }
+
+  &:hover::-webkit-slider-thumb {
+    background: var(--mosni-purple-light);
+  }
+
+  &:hover::-moz-range-thumb {
+    background: var(--mosni-purple-light);
+  }
+
+  @include shared.focus-ring;
+
+  @media (prefers-reduced-motion: reduce) {
+    &::-webkit-slider-thumb,
+    &::-moz-range-thumb {
+      transition: none;
+    }
+  }
+}
+
+.slider-ticks {
+  position: absolute;
+  inset-inline: 10px;
+  top: calc(0.6rem + 10px);
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.slider-tick {
+  width: 3px;
+  height: 3px;
+  background: var(--mosni-border-muted);
+  border-radius: 999px;
+}
+
+.slider-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  color: var(--mosni-text-muted);
+}
+
+.slider-readout {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mosni-white);
+  text-align: center;
+}

@@ -115,6 +115,7 @@ async function testDocsExamplesRender() {
     "mosni-footer.html": 'mosni-footer a[slot="links"]',
     "mosni-field.html": "mosni-field[type='email']",
     "mosni-switch.html": "mosni-switch[checked]",
+    "mosni-slider.html": "mosni-slider[label]",
     "mosni-modal.html": "mosni-modal[heading]",
     "mosni-tooltip.html": "mosni-tooltip[text]",
     "mosni-toast.html": 'button[onclick*="mosni.toast"]',
@@ -403,6 +404,69 @@ async function testComponents() {
     assertTrue(
       input.checked === true && el.hasAttribute("checked"),
       "mosni-switch: checked=true syncs the inner checkbox + attribute",
+    );
+  }
+
+  {
+    const el = document.createElement("mosni-slider");
+    el.setAttribute("stops", "30 minutes|1 hour|2 hours|90 days");
+    el.setAttribute("value", "1");
+    el.setAttribute("label", "Link expires after");
+    document.body.appendChild(el);
+
+    const input = el.querySelector("input[type=range]");
+    assertTrue(!!input, "mosni-slider: input[type=range] present");
+    assertTrue(
+      input.min === "0" && input.max === "3",
+      "mosni-slider: range min/max span the stop count (4 stops -> 0..3)",
+    );
+    assertTrue(
+      input.value === "1",
+      "mosni-slider: range value starts at the value index",
+    );
+    assertTrue(
+      input.getAttribute("aria-valuetext") === "1 hour",
+      "mosni-slider: aria-valuetext names the current stop, not the index",
+    );
+    assertTrue(
+      el.querySelector(".slider-end-start")?.textContent === "30 minutes" &&
+        el.querySelector(".slider-end-end")?.textContent === "90 days",
+      "mosni-slider: only the first and last stop are printed as end labels",
+    );
+    assertTrue(
+      el.querySelectorAll(".slider-tick").length === 4,
+      "mosni-slider: one .slider-tick per stop",
+    );
+    assertTrue(
+      el.querySelector(".slider-readout")?.textContent === "1 hour",
+      "mosni-slider: readout names the current stop",
+    );
+
+    // The value attribute must reflect BEFORE `change` reaches an ancestor - mirrors mosni-switch.
+    let observedAtAncestor = null;
+    document.body.addEventListener(
+      "change",
+      () => {
+        observedAtAncestor = el.getAttribute("value");
+      },
+      { once: true },
+    );
+    input.value = "3";
+    input.dispatchEvent(new window.Event("change", { bubbles: true }));
+    assertTrue(
+      el.getAttribute("value") === "3",
+      "mosni-slider: value attribute reflects the new index on change",
+    );
+    assertTrue(
+      observedAtAncestor === "3",
+      "mosni-slider: an ancestor's change listener already sees the reflected value",
+    );
+
+    el.value = 0;
+    assertTrue(
+      input.value === "0" &&
+        el.querySelector(".slider-readout")?.textContent === "30 minutes",
+      "mosni-slider: setting the value property re-syncs the input + readout",
     );
   }
 

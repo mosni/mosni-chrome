@@ -301,6 +301,45 @@ export const componentMeta: ComponentMeta[] = [
     ],
   },
   {
+    tag: "mosni-slider",
+    summary:
+      "A generic ordered-discrete-choice slider - knows about stops, not what they mean - composes .slider. Wraps a real <input type=range> internally (keyboard + a11y for free).",
+    attributes: [
+      {
+        name: "stops",
+        type: "string",
+        observed: true,
+        default: "—",
+        description:
+          'Pipe-delimited stop labels in order, e.g. "30 minutes|1 hour|2 hours". Only the first and last are printed under the track ends; the readout names the current stop.',
+      },
+      {
+        name: "value",
+        type: "number",
+        observed: true,
+        default: "0",
+        description:
+          "Selected stop INDEX (not the stop's meaning). Reflected onto self before change bubbles past this element; mirrored property.",
+      },
+      {
+        name: "label",
+        type: "string",
+        observed: true,
+        default: "—",
+        description:
+          "Optional caption above the track; also becomes the range input's accessible name.",
+      },
+    ],
+    slots: [],
+    events: [
+      {
+        name: "change",
+        description:
+          "Native change, bubbling from the inner range input; no custom event. value already reflects the new index by the time this reaches an ancestor.",
+      },
+    ],
+  },
+  {
     tag: "mosni-chips",
     summary:
       "A filterable multi-select that ENHANCES authored checkboxes rather than replacing them - composes .chips, and builds on <mosni-switch> (each authored checkbox is adopted by one, reusing the same input element) and <mosni-field> (the filter box). The checkboxes stay in the light DOM and remain the source of truth, so with no JS the consumer still gets a plain list that submits natively, and existing code reading those checkboxes keeps working. Adoption is markup-only: wrap them. display: block.",

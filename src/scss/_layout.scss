@@ -77,6 +77,25 @@
   color: var(--mosni-purple-light);
 }
 
+// A consumer that writes an identity line into the header's right-hand slot - mosni/files renders
+// "Logged in as <avatar> <name>" here - can be handed a name with no wrap opportunity anywhere in it. A
+// link account's display name is its own sub: `link:` followed by a 32-character hex id, i.e. a 37-char
+// unbreakable token. Without this it grew the flex item until it pushed the rest of the header apart
+// (Hannah, live).
+//
+// Deliberately scoped to the header's own little-link rather than the bare class. `.little-link` is also a
+// generic small-muted-text utility consumers apply to ordinary paragraphs (mosni/files' preview card uses
+// it for the size line and the "uploaded ... by ..." line); a global `white-space: nowrap` would stop
+// those wrapping and ellipsize them instead, which is a regression rather than a fix.
+.header > .little-link {
+  // A flex item's automatic minimum size is its content, so it refuses to shrink below that and neither
+  // overflow nor text-overflow gets a chance to apply. This is what actually enables the ellipsis.
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .content {
   display: flex;
   flex-flow: row;

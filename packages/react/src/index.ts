@@ -1,4 +1,4 @@
-// @mosni/react — the React-native authoring path for mosnicat (see react-plan.md in the repo root).
+// @mosni/react — the React-native authoring path for mosnicat (see agent-docs → planning-artifacts/react-path-implementation-waves.md).
 // Named exports only, no default export (§3). Components land wave-by-wave; this file grows one
 // export per component as each wave lands.
 export { Panel } from "./components/Panel";

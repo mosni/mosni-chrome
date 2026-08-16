@@ -46,7 +46,7 @@ export type FieldProps = Omit<
   children?: ReactNode;
 };
 
-// NOTE (see react-plan.md §10): field.ts sets `control.value = value` as a PROPERTY, not an
+// NOTE (see agent-docs → planning-artifacts/react-path-implementation-waves.md §10): field.ts sets `control.value = value` as a PROPERTY, not an
 // attribute - browsers (and jsdom) never reflect a programmatically-set `.value` back onto the
 // `value` ATTRIBUTE for input/textarea, so the custom element's rendered markup never shows the
 // configured value at all, no matter what `value` a fixture supplies. React's SSR, by contrast,

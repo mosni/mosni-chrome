@@ -1,4 +1,4 @@
-// Behaviour tests for @mosni/react (react-plan.md §5.2): interaction paths parity.mjs's static
+// Behaviour tests for @mosni/react (agent-docs → planning-artifacts/react-path-implementation-waves.md §5.2): interaction paths parity.mjs's static
 // markup comparison structurally cannot see - clicks, keyboard nav, effect-driven async state,
 // unmount cleanup. The actual test cases live in packages/react/behaviour/cases.tsx (real TSX,
 // so it can render real components); this script's only job is to stand up a live DOM for

@@ -1,7 +1,7 @@
 {
   "name": "@mosni/react",
   "version": "0.1.0",
-  "description": "React-native components for mosnicat, the mosni.dev design system. See react-plan.md in the repo root for the design that produced this package.",
+  "description": "React-native components for mosnicat, the mosni.dev design system. See agent-docs → planning-artifacts/react-path-implementation-waves.md for the design that produced this package.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

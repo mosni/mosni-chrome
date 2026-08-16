@@ -175,7 +175,7 @@ async function assertReactPackageShape() {
 }
 
 // meta.ts's tag/attribute naming is kebab-case throughout (mosnicat.md's own contract); the React
-// side is camelCase throughout (react-plan.md §3) - both conversions are systematic enough to
+// side is camelCase throughout (agent-docs → planning-artifacts/react-path-implementation-waves.md §3) - both conversions are systematic enough to
 // derive rather than hand-list, and every one of the 21 documented tags does follow it (verified:
 // mosni-menu-item -> MenuItem, filter-threshold -> filterThreshold, no-logo -> noLogo, etc).
 function toPascalCase(tag) {
@@ -192,7 +192,7 @@ function toCamelCase(attr) {
   );
 }
 
-// react-plan.md §4's own component table deliberately gives <Tab> no per-tab `selected` prop -
+// agent-docs → planning-artifacts/react-path-implementation-waves.md §4's own component table deliberately gives <Tab> no per-tab `selected` prop -
 // selection is lifted to the PARENT <Tabs> (`selectedIndex`/`defaultSelectedIndex`), a more
 // idiomatic React shape than a boolean repeated on every child. This is the one documented,
 // intentional gap between a tag's attribute set and its React Props type; every other tag's

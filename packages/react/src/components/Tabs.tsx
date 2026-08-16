@@ -25,7 +25,7 @@ export type TabsProps = Omit<
   children: ReactElement<TabProps> | ReactElement<TabProps>[];
 };
 
-// mosni-tabs is UNWRAPPED_HOSTS (react-plan.md §10): it never classes its own host, only the
+// mosni-tabs is UNWRAPPED_HOSTS (agent-docs → planning-artifacts/react-path-implementation-waves.md §10): it never classes its own host, only the
 // generated div.tabs child it appends - so React renders div.tabs directly, no host box to
 // reintroduce (D-R1). <Tab> children are read for `label`/`children` only, never rendered
 // themselves - tabs.ts does the same thing imperatively (moves each mosni-tab's children into a

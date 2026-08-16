@@ -135,7 +135,7 @@ async function testDocsExamplesRender() {
     "icons.html": "mosni-icon[name]",
   };
 
-  // React tabs (react-plan.md §6.2): every id below got a "React" tab added in docs.mjs, each
+  // React tabs (agent-docs → planning-artifacts/react-path-implementation-waves.md §6.2): every id below got a "React" tab added in docs.mjs, each
   // wrapping its demo in a `#<id>-react-demo` div specifically so this check has something stable
   // to assert against - the demo's actual MARKUP varies per component (and for the portal-based
   // components, is deliberately sparse - see docs/examples/react/mosni-modal.tsx's own comment),

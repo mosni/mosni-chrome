@@ -31,7 +31,7 @@ export type ChipsProps = Omit<
 // checkbox in a <mosni-switch> - one implementation of the toggle, not two that can drift.
 //
 // The filter text matches against `option.label` (not chips.ts's `box.value`-first, label-as-fallback
-// quirk - see react-plan.md §10): the React API hands label and value in explicitly instead of
+// quirk - see agent-docs → planning-artifacts/react-path-implementation-waves.md §10): the React API hands label and value in explicitly instead of
 // deriving one from the other, so matching the human-readable label is the only sensible reading of
 // "Filter…" for this shape. Filtered-out options are omitted from the render entirely rather than
 // given a `hidden` attribute: chips.ts's `.chips-options mosni-switch[hidden]` CSS rule has no `.switch`

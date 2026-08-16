@@ -80,7 +80,7 @@ async function generate() {
 // fails the build if this file is stale.
 //
 // Augments "react"'s OWN JSX namespace (React.JSX), not a bare \`declare global { namespace JSX }\`
-// (react-plan.md §10): @types/react 19 moved JSX.IntrinsicElements from the global JSX namespace
+// (agent-docs → planning-artifacts/react-path-implementation-waves.md §10): @types/react 19 moved JSX.IntrinsicElements from the global JSX namespace
 // into \`declare namespace React { namespace JSX { … } }\`, and with "jsx": "react-jsx" (automatic
 // runtime), TypeScript resolves JSX types through the JSX namespace exported by "react/jsx-runtime"
 // (itself a re-export of React.JSX) - a global-namespace augmentation silently merges with nothing

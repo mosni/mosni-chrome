@@ -17,7 +17,7 @@ export type IconProps = Omit<ComponentPropsWithoutRef<"span">, "children"> & {
   size?: number;
 };
 
-// No default className (react-plan.md §10): icon.ts never adds a class to its own host either -
+// No default className (agent-docs → planning-artifacts/react-path-implementation-waves.md §10): icon.ts never adds a class to its own host either -
 // confirmed against the built element directly, `<mosni-icon>` stays classless even once painted -
 // so a React-only "mosni-icon" class here would be inventing styling hook that no SCSS rule backs.
 // Lazy, via the SAME public icon chunk loadChunk (D-R8) icon.ts uses; SSR (and the very first

@@ -8,7 +8,7 @@ export interface LoginButtonProps {
   onLogin?: () => void;
 }
 
-// D-R1's SANCTIONED exception (react-plan.md §2): <mosni-login-button> has a shadow root and takes
+// D-R1's SANCTIONED exception (agent-docs → planning-artifacts/react-path-implementation-waves.md §2): <mosni-login-button> has a shadow root and takes
 // no light-DOM children, so React and the element never contend over child ownership - this is the
 // one component where rendering the REAL custom element is correct instead of re-expressing its DOM
 // in React. `size`/`text`/`loading` are passed straight through as JSX props: login-button.ts never

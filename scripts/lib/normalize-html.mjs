@@ -1,4 +1,4 @@
-// Shared normalization for scripts/parity.mjs (react-plan.md §5.1 step 3): the custom-element side
+// Shared normalization for scripts/parity.mjs (agent-docs → planning-artifacts/react-path-implementation-waves.md §5.1 step 3): the custom-element side
 // and the React side use different id-generation strategies (a module counter vs. useId()) and
 // carry runtime-measured inline styles (dropdown menu position, tooltip position) that can never
 // match between a jsdom run and a renderToStaticMarkup pass with no real layout - both are expected
@@ -55,7 +55,7 @@ function stripMeasurementStyle(styleValue) {
 //    Its class list and children must still match exactly - only the tag name differs.
 // Membership here is NOT "which SCSS twin exists" - it is "does the custom element's JS put the
 // styled class on ITS OWN host, or on a child it generates?" Verified against each component's
-// render() individually (react-plan.md §10 records two the plan's own draft table got backwards):
+// render() individually (agent-docs → planning-artifacts/react-path-implementation-waves.md §10 records two the plan's own draft table got backwards):
 // mosni-chips, mosni-tabs, and mosni-lightbox all build their real, classed box as a CHILD and
 // leave the host itself class-less - renaming the host would produce a spurious extra wrapper level
 // with an empty class, not the single classed box React renders - so they belong in UNWRAPPED_HOSTS
@@ -180,7 +180,7 @@ function normalizeAttributes(root) {
       el.removeAttribute("name");
     }
     // slider.ts assigns input.value as a PROPERTY (same class of one-sided-serialization problem
-    // as Field's/Switch's `value`/`checked`, react-plan.md §10 Wave 2 finding 6): `value` is not a
+    // as Field's/Switch's `value`/`checked`, agent-docs → planning-artifacts/react-path-implementation-waves.md §10 Wave 2 finding 6): `value` is not a
     // reflected content attribute on <input>, so the element side never serializes it, while
     // React's SSR emits `value` for controlled AND uncontrolled range inputs. Scoped to
     // input[type="range"] exactly - not added to ID_REFERENCING_ATTRS or stripped from every input,
@@ -276,7 +276,7 @@ export function normalizeHost(host, attributesByTag = new Map()) {
   // `el.removeAttribute(name)` on the connected original would fire `attributeChangedCallback` for
   // real and undo the very state (the .error class, aria-invalid, the .field-error paragraph) the
   // comparison exists to check - discovered via mosni-field/error failing parity with the WRONG
-  // side missing its error markup (react-plan.md §10). `cloneNode(true)` sidesteps this cleanly:
+  // side missing its error markup (agent-docs → planning-artifacts/react-path-implementation-waves.md §10). `cloneNode(true)` sidesteps this cleanly:
   // every component's `attributeChangedCallback` guards on `this.rendered` (set only by
   // `connectedCallback`), and a clone is never connected, so its callbacks stay inert no matter
   // what this function goes on to mutate.

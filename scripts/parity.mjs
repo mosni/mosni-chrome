@@ -1,4 +1,4 @@
-// The load-bearing check of the React path (react-plan.md §5.1, D-R6): every component is rendered
+// The load-bearing check of the React path (agent-docs → planning-artifacts/react-path-implementation-waves.md §5.1, D-R6): every component is rendered
 // BOTH ways with the same inputs, and any structural difference fails the build.
 //
 // Until this existed, D-17's "a component and its hand-written class equivalent render

@@ -1,7 +1,18 @@
 @use "shared";
 
+// A transparent wrapper, not a box of its own — mosni-switch never classes itself, it only ever
+// generates .switch as a child (the UNWRAPPED_HOSTS category; agent-docs →
+// planning-artifacts/react-path-implementation-waves.md §10). `display: contents` is the
+// established reset for this category (see mosni-tab/mosni-dropdown-item/mosni-modal). Was
+// `inline-block` until row 011's visual-parity harness caught it: an inline-block host wrapping an
+// inline-flex .switch child creates a phantom line-box around it, and — invisibly in an isolated
+// standalone switch, but not inside a CSS Grid, where the host (blockified as the grid item) no
+// longer transmits the grid's stretch sizing to its own inline child — .switch stayed at its
+// intrinsic content width/height instead of filling the grid cell, while a hand-written `.switch`
+// used directly (no host) filled it correctly. Confirmed via mosni-chips, whose `.chips-options`
+// grid places a `<mosni-switch>` per option.
 mosni-switch {
-  display: inline-block;
+  display: contents;
 }
 
 .switch {

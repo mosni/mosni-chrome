@@ -10,6 +10,8 @@ import type { ReactElement } from "react";
 import {
   Accordion,
   AccordionItem,
+  Chips,
+  Field,
   Footer,
   Header,
   Layout,
@@ -17,6 +19,8 @@ import {
   Menu,
   MenuItem,
   Panel,
+  Slider,
+  Switch,
   Tab,
   Tabs,
 } from "../src/index";
@@ -31,6 +35,16 @@ function svgIcon(paths: string[], size = 20): string {
 }
 const MENU_ICON = svgIcon(["M4 5h16", "M4 12h16", "M4 19h16"]);
 const CHEVRON_DOWN_ICON = svgIcon(["m6 9 6 6 6-6"], 16);
+
+// Matches switch.ts's generated markup exactly (label.switch > input + span.switch-visual >
+// span.switch-thumb, then the label text) — reused for the standalone Switch fixture and for
+// Chips's per-option rows, which chips.ts composes from the same primitive.
+function switchHtml(label: string, checked: boolean): string {
+  return (
+    `<label class="switch"><input type="checkbox"${checked ? " checked" : ""}>` +
+    `<span class="switch-visual"><span class="switch-thumb"></span></span>${label}</label>`
+  );
+}
 
 export interface VisualCase {
   /** Fixture id; prefix with the tag so failures sort together. */
@@ -146,5 +160,61 @@ export const visualCases: VisualCase[] = [
       </Tabs>
     ),
     classHtml: `<div class="tabs"><div class="tabs-bar" role="tablist"><button type="button" class="tab" role="tab" aria-selected="false" tabindex="-1">One</button><button type="button" class="tab" role="tab" aria-selected="true" tabindex="0">Two</button></div><div class="tabs-panel" role="tabpanel" hidden><p>one</p></div><div class="tabs-panel" role="tabpanel"><p>two</p></div></div>`,
+  },
+
+  // --- Form group -----------------------------------------------------------------------------
+
+  {
+    name: "mosni-field/default",
+    html: `<mosni-field label="Email" type="email" name="email"></mosni-field>`,
+    element: <Field label="Email" type="email" name="email" />,
+    classHtml: `<div class="field"><label class="field-label" for="field-demo">Email</label><input type="email" id="field-demo" name="email"></div>`,
+  },
+  {
+    name: "mosni-field/error",
+    html: `<mosni-field label="Name" required error="This field is required"></mosni-field>`,
+    element: <Field label="Name" required error="This field is required" />,
+    classHtml: `<div class="field error"><label class="field-label" for="field-error-demo">Name<span class="field-req">*</span></label><input type="text" id="field-error-demo" required aria-invalid="true"><p class="field-error">This field is required</p></div>`,
+  },
+  {
+    name: "mosni-switch/checked",
+    html: `<mosni-switch label="Notifications" checked></mosni-switch>`,
+    element: <Switch label="Notifications" defaultChecked />,
+    classHtml: switchHtml("Notifications", true),
+  },
+  {
+    name: "mosni-switch/unchecked",
+    html: `<mosni-switch label="Notifications"></mosni-switch>`,
+    element: <Switch label="Notifications" />,
+    classHtml: switchHtml("Notifications", false),
+  },
+  {
+    // chips.ts derives each option's displayed label from the checkbox's VALUE when present
+    // (falling back to the <label> text only if value is empty — Chips.tsx's own header comment
+    // documents this "value-first" quirk). Value and label are kept identical here on purpose so
+    // the fixture does not exercise that quirk; React's explicit {value,label} pairs already keep
+    // the two independent, so this is purely about matching the element path's real behaviour.
+    name: "mosni-chips/with-selection",
+    html: `<mosni-chips label="Roles"><label><input type="checkbox" value="Read" checked>Read</label><label><input type="checkbox" value="Write">Write</label><label><input type="checkbox" value="Admin" checked>Admin</label></mosni-chips>`,
+    element: (
+      <Chips
+        label="Roles"
+        options={[
+          { value: "Read", label: "Read" },
+          { value: "Write", label: "Write" },
+          { value: "Admin", label: "Admin" },
+        ]}
+        defaultValue={["Read", "Admin"]}
+      />
+    ),
+    classHtml: `<div class="chips"><span class="chips-label">Roles</span><div class="chips-selected"><span class="chip"><span class="chip-text">Read</span><button type="button" class="chip-x" aria-label="Remove Read">×</button></span><span class="chip"><span class="chip-text">Admin</span><button type="button" class="chip-x" aria-label="Remove Admin">×</button></span></div><div class="chips-options" style="max-height: 13rem">${switchHtml("Read", true)}${switchHtml("Write", false)}${switchHtml("Admin", true)}</div></div>`,
+  },
+  {
+    name: "mosni-slider/labelled",
+    html: `<mosni-slider stops="A|B|C" value="1" label="Pick one"></mosni-slider>`,
+    element: (
+      <Slider stops={["A", "B", "C"]} defaultValue={1} label="Pick one" />
+    ),
+    classHtml: `<div class="slider"><label class="slider-label" for="slider-demo">Pick one</label><div class="slider-track-wrap"><input type="range" class="slider-input" id="slider-demo" min="0" max="2" step="1" aria-label="Pick one" aria-valuetext="B" value="1"><div class="slider-ticks" aria-hidden="true"><span class="slider-tick"></span><span class="slider-tick"></span><span class="slider-tick"></span></div><div class="slider-ends" aria-hidden="true"><span class="slider-end slider-end-start">A</span><span class="slider-end slider-end-end">C</span></div></div><div class="slider-readout" aria-hidden="true">B</div></div>`,
   },
 ];

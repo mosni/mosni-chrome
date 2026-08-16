@@ -11,11 +11,13 @@ import {
   Accordion,
   AccordionItem,
   Chips,
+  Code,
   Dropdown,
   DropdownItem,
   Field,
   Footer,
   Header,
+  Icon,
   Layout,
   Lightbox,
   Logo,
@@ -324,5 +326,35 @@ export const visualCases: VisualCase[] = [
       "the tip's position is computed at runtime from the anchor's and tip's measured rects (positionTooltip, D-R8); a hand-typed position cannot be derived without running the same JS",
     subjectSelector: ".tooltip",
     revealSelector: "button",
+  },
+
+  // --- Lazy-chunk group -------------------------------------------------------------------------
+  //
+  // Both real subjects here (a painted icon, real Prism highlighting) exist ONLY because Path C is
+  // mounted live via createRoot (see the file header) — under renderToStaticMarkup, both would show
+  // the exact same blank/unhighlighted state the docs page's static preview does today.
+
+  {
+    name: "mosni-icon/default",
+    html: `<mosni-icon name="rocket"></mosni-icon>`,
+    element: <Icon name="rocket" />,
+    // No bare-classes icon primitive exists (D-24: the curated Lucide set is component-internal) -
+    // the only non-React way to render a mosnicat icon IS the custom element, which is already
+    // path A. There is nothing further "hand-typed" to compare it against.
+    classHtml: null,
+    classGap:
+      "mosnicat has no bare-classes icon primitive (D-24 scope guard); <mosni-icon> is itself the only non-React rendering path, already covered as path A",
+  },
+  {
+    name: "mosni-code/default",
+    html: `<mosni-code language="ts">const x = 1;</mosni-code>`,
+    element: <Code language="ts">{"const x = 1;"}</Code>,
+    // The surrounding chrome (header, copy button) is hand-typeable, but the highlighted
+    // `.token` spans inside <code> exist only once the lazy Prism chunk runs (mosniPrism.highlight)
+    // - the same lazy-paint mechanism <mosni-code> itself uses. A hand-typed block would show
+    // plain unhighlighted text, a real (if well-understood) gap, not a CSS one.
+    classHtml: null,
+    classGap:
+      "Prism syntax highlighting is applied by the lazy mosniPrism.highlight() chunk at runtime, the same mechanism mosni-code itself uses; a hand-typed <code> block would show unhighlighted plain text, not real parity",
   },
 ];

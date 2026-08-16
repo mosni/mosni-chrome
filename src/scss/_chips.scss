@@ -79,15 +79,18 @@ mosni-chips {
   width: 100%;
 }
 
-// mosni-field always renders a .field-label, even for an empty label. Ours is intentionally
-// unlabelled - .chips-label above names the group and the placeholder says the rest - so suppress
-// it explicitly rather than leaving a blank line of vertical rhythm. Not `:empty`, which is
-// unreliable against the empty text node mosni-field appends.
-.chips mosni-field .field-label {
+// The filter box is unlabelled - .chips-label above names the group and the placeholder says the
+// rest - so suppress the (empty) label explicitly rather than leaving a blank line of vertical
+// rhythm. Not `:empty`, which is unreliable against the empty text node mosni-field appends.
+// Targets the `.field` CLASS, not the `mosni-field` tag: chips.ts nests a real `<mosni-field>`
+// (which carries this class on itself, field.ts's `this.classList.add("field")`), but Chips.tsx
+// deliberately renders a bare `.field` div instead of `<Field>` (see Chips.tsx's own comment) - a
+// tag-scoped selector would silently miss the React path's identical box.
+.chips .field .field-label {
   display: none;
 }
 
-.chips mosni-field {
+.chips .field {
   margin: 0;
 }
 

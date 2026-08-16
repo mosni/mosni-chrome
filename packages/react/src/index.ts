@@ -52,3 +52,5 @@ export type {
 } from "./components/Toast";
 export { LoginButton } from "./components/LoginButton";
 export type { LoginButtonProps } from "./components/LoginButton";
+export { Slider } from "./components/Slider";
+export type { SliderProps } from "./components/Slider";

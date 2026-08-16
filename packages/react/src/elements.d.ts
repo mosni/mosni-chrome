@@ -82,6 +82,14 @@ declare module "react" {
         name?: string;
         value?: string;
       };
+      "mosni-slider": DetailedHTMLProps<
+        HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        stops?: string;
+        value?: number;
+        label?: string;
+      };
       "mosni-chips": DetailedHTMLProps<
         HTMLAttributes<HTMLElement>,
         HTMLElement

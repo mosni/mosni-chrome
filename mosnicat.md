@@ -170,6 +170,7 @@ the matching `<X>` from `@mosni/react` wherever the light-DOM ownership conflict
 | `Footer`                      | `footer.footer`                         |                                                                                 |
 | `Field`                       | `div.field`                             | `children` overrides the generated control (enhance-first, like the class path) |
 | `Switch`                      | `label.switch`                          | Controlled (`checked`) or uncontrolled (`defaultChecked`)                       |
+| `Slider`                      | `div.slider`                            | Controlled (`value`) or uncontrolled (`defaultValue`); an index, not a value    |
 | `Chips`                       | `div.chips`                             | Renders real checkboxes directly — nothing to "enhance" in React                |
 | `Modal`                       | `dialog.modal` (portal)                 | Portals to `document.body`; SSR renders only its non-portalled content, if any  |
 | `Tooltip`                     | anchor + portal `div.tooltip`           | Portals to `document.body`; same SSR note as `Modal`                            |

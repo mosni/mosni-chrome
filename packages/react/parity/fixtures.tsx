@@ -23,6 +23,7 @@ import {
   Menu,
   MenuItem,
   Panel,
+  Slider,
   Switch,
   Tab,
   Tabs,
@@ -461,5 +462,21 @@ export const cases: ParityCase[] = [
     name: "mosni-icon/default",
     html: `<mosni-icon name="check"></mosni-icon>`,
     element: <Icon name="check" />,
+  },
+
+  // --- Row 010: Slider (mosni-slider, D-207) -----------------------------------------------------
+  //
+  // Neither fixture sets value/defaultValue - same rule Wave 2 established for Field/Switch.
+  // Selection is covered by the behaviour case instead (packages/react/behaviour/cases.tsx).
+
+  {
+    name: "mosni-slider/default",
+    html: `<mosni-slider stops="A|B|C"></mosni-slider>`,
+    element: <Slider stops={["A", "B", "C"]} />,
+  },
+  {
+    name: "mosni-slider/labelled",
+    html: `<mosni-slider stops="A|B|C" label="Pick one"></mosni-slider>`,
+    element: <Slider stops={["A", "B", "C"]} label="Pick one" />,
   },
 ];

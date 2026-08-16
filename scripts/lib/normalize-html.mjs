@@ -73,6 +73,10 @@ const RENAMED_HOSTS = new Map([
   ["mosni-icon", "span"],
   ["mosni-accordion", "div"],
   ["mosni-dropdown", "div"],
+  // slider.ts calls classList.add("slider") on its OWN host - the table's membership test - so it
+  // belongs here, not in UNWRAPPED_HOSTS; it self-classes already, so it needs no
+  // IMPLICIT_HOST_CLASS entry (unlike mosni-accordion).
+  ["mosni-slider", "div"],
 ]);
 
 // mosni-accordion is the one RENAMED_HOSTS tag that styles itself through a bare TAG selector
@@ -174,6 +178,19 @@ function normalizeAttributes(root) {
     // `exclusive` variant at all under this jsdom version.
     if (el.tagName.toLowerCase() === "details" && el.hasAttribute("name")) {
       el.removeAttribute("name");
+    }
+    // slider.ts assigns input.value as a PROPERTY (same class of one-sided-serialization problem
+    // as Field's/Switch's `value`/`checked`, react-plan.md §10 Wave 2 finding 6): `value` is not a
+    // reflected content attribute on <input>, so the element side never serializes it, while
+    // React's SSR emits `value` for controlled AND uncontrolled range inputs. Scoped to
+    // input[type="range"] exactly - not added to ID_REFERENCING_ATTRS or stripped from every input,
+    // which would hide real drift on e.g. <input name="…" value="…">.
+    if (
+      el.tagName.toLowerCase() === "input" &&
+      el.getAttribute("type") === "range" &&
+      el.hasAttribute("value")
+    ) {
+      el.removeAttribute("value");
     }
     if (el.hasAttribute("style")) {
       const kept = stripMeasurementStyle(el.getAttribute("style"));

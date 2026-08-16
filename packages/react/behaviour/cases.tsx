@@ -14,6 +14,7 @@ import {
   Field,
   LoginButton,
   Modal,
+  Slider,
   Switch,
   Tab,
   Tabs,
@@ -59,6 +60,23 @@ function click(el: Element | null): void {
 
 function assert(condition: boolean, message: string): void {
   if (!condition) throw new Error(message);
+}
+
+// Drives a range input the way an actual drag does: through the native prototype's `value`
+// setter, not a plain `input.value = x` assignment. React installs a per-instance tracker that
+// patches the instance setter to record its own "last known value"; a plain assignment goes
+// through that patched setter too, so the tracker would already show the new value by the time the
+// event fires and React would conclude nothing changed and skip onChange. The native setter
+// bypasses the instance patch, exactly like the browser does when the user drags the thumb.
+function setRangeValue(input: HTMLInputElement, value: string): void {
+  const nativeSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype,
+    "value",
+  )!.set!;
+  nativeSetter.call(input, value);
+  act(() => {
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
 }
 
 export const cases: BehaviourCase[] = [
@@ -556,6 +574,67 @@ export const cases: BehaviourCase[] = [
       );
 
       unmount();
+    },
+  },
+
+  {
+    name: "Slider",
+    run: () => {
+      let lastIndex: number | undefined;
+
+      function UncontrolledHarness(): ReactElement {
+        return (
+          <Slider
+            stops={["30 minutes", "1 hour", "2 hours"]}
+            onChange={(index) => {
+              lastIndex = index;
+            }}
+          />
+        );
+      }
+
+      const uncontrolled = mount(<UncontrolledHarness />);
+      const input = uncontrolled.container.querySelector(
+        "input.slider-input",
+      ) as HTMLInputElement;
+
+      assert(input.value === "0", "starts at index 0");
+      setRangeValue(input, "2");
+      assert(
+        lastIndex === 2,
+        "moving the input fires onChange with the new index as a number",
+      );
+      assert(
+        uncontrolled.container.querySelector(".slider-readout")?.textContent ===
+          "2 hours",
+        ".slider-readout updates to the new stop label",
+      );
+      assert(
+        input.getAttribute("aria-valuetext") === "2 hours",
+        "aria-valuetext updates to the new stop label",
+      );
+
+      uncontrolled.unmount();
+
+      // A controlled Slider whose onChange ignores the event stays on its given index - React
+      // resets the input back to the `value` prop on the next render, same as any controlled input.
+      function ControlledHarness(): ReactElement {
+        return <Slider stops={["30 minutes", "1 hour", "2 hours"]} value={1} />;
+      }
+
+      const controlled = mount(<ControlledHarness />);
+      const controlledInput = controlled.container.querySelector(
+        "input.slider-input",
+      ) as HTMLInputElement;
+
+      assert(controlledInput.value === "1", "controlled: starts at index 1");
+      setRangeValue(controlledInput, "2");
+      assert(
+        controlledInput.value === "1",
+        "controlled: stays on index 1 when onChange ignores the event",
+      );
+
+      controlled.unmount();
     },
   },
 ];

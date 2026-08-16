@@ -161,6 +161,7 @@ async function testDocsExamplesRender() {
     "mosni-code",
     "mosni-accordion",
     "mosni-tabs",
+    "mosni-slider",
   ];
   for (const id of REACT_TAB_IDS) {
     exampleSelectors[`${id}.html [react tab]`] = `#${id}-react-demo > *`;

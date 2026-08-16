@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Modal } from "../../../packages/react/src/index";
 
-// The dialog itself is portalled to document.body (react-plan.md §10) - under the static render
+// The dialog itself is portalled to document.body (agent-docs → planning-artifacts/react-path-implementation-waves.md §10) - under the static render
 // this docs page uses, that portal renders nothing (there is no live document.body to attach to
 // during renderToStaticMarkup), so the demo pane below only ever shows the trigger button. That is
 // the real, accurate output of this component under static rendering, not a stand-in.

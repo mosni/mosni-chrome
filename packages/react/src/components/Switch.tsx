@@ -17,7 +17,7 @@ export interface SwitchProps {
 // `display: inline-block` host (§10's D-R11 note: this is a host RESET, not real styling, so the
 // React path gets no twin and renders no box for it at all).
 //
-// NOTE (react-plan.md §10, same quirk as <Field>'s value): switch.ts sets `input.checked = true` as
+// NOTE (agent-docs → planning-artifacts/react-path-implementation-waves.md §10, same quirk as <Field>'s value): switch.ts sets `input.checked = true` as
 // a PROPERTY when the host's `checked` attribute is present, never as an attribute on the input
 // itself - so the custom element's rendered markup never shows `checked` on a freshly-generated
 // input, no matter what the fixture asks for. React's SSR always emits `checked=""` for a checked

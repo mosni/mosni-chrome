@@ -3,7 +3,7 @@
 > **Planned, not executed.** This repo does not touch `mosni/files`. The tarball
 > (`mosni-react-<version>.tgz`) has to actually exist on `ui.mosni.dev` before `files` can install
 > it, which only happens once this repo deploys — so this document is the ready-to-run recipe for
-> whoever does that migration in the `mosni/files` repo, not a change made here. See `react-plan.md`
+> whoever does that migration in the `mosni/files` repo, not a change made here. See `agent-docs → planning-artifacts/react-path-implementation-waves.md`
 > §1/§8 in this repo for the friction points this recipe fixes and the decisions behind it.
 
 Every step below is independently shippable and independently revertible. Do them in order; stop
@@ -14,7 +14,7 @@ after any step and the app is still in a fully working state.
 - Confirm the tarball is live: `curl -I https://ui.mosni.dev/mosni-react-0.1.0.tgz` should return
   `200`. If it 404s, this repo hasn't deployed yet — wait, or bump the version in the snippets below
   to whatever `mosni-chrome`'s `packages/react/package.json` currently says.
-- **Check the build date against `mosni-chrome`'s `react-plan.md` §10 "Wave 4" note before relying
+- **Check the build date against `mosni-chrome`'s `agent-docs → planning-artifacts/react-path-implementation-waves.md` §10 "Wave 4" note before relying
   on `@mosni/react/elements`.** Any tarball built before that fix landed has a real, silent bug:
   `import "@mosni/react/elements"` type-checks fine but adds **no** `<mosni-*>` JSX typings at all
   (the ambient augmentation targeted the wrong JSX namespace for `@types/react` 19 +
@@ -32,7 +32,7 @@ Costs one import; changes no behaviour at all. Safe to ship on its own.
    ```
 
    Run the install, and confirm `react >= 18` is already satisfied (peer dependency — `mosni/files`
-   already depends on React 19, per `react-plan.md` §1's framing of that repo).
+   already depends on React 19, per `agent-docs → planning-artifacts/react-path-implementation-waves.md` §1's framing of that repo).
 
 2. Add one import to `web/src/main.tsx` (or wherever the app's entry point is):
 
@@ -79,7 +79,7 @@ useEffect(() => {
 
 This exists only because `<mosni-code>` reads `this.textContent` in `connectedCallback`, and React
 inserts the host **empty**, then appends children in a later commit — so the naive
-`<mosni-code>{content}</mosni-code>` JSX renders an empty block on first paint (`react-plan.md`
+`<mosni-code>{content}</mosni-code>` JSX renders an empty block on first paint (`agent-docs → planning-artifacts/react-path-implementation-waves.md`
 §1's whole motivating example). `<Code>` doesn't have this problem — its text renders synchronously
 in the same render pass, verified directly by `mosni-chrome`'s
 `scripts/react-behaviour.mjs` ("renders its text on first paint with no effect required"). Replace
@@ -98,7 +98,7 @@ Delete `CodeBlock.tsx` and its `useEffect` entirely once every call site is swit
 ### `FileBrowser.tsx`'s `<mosni-tabs>`/`<mosni-dropdown>` → `<Tabs>`/`<Dropdown>`
 
 Today, listening for `mosni-tab-change`/`mosni-dropdown-select` needs a `useRef` on the host plus
-`addEventListener`/`removeEventListener` in an effect at every call site (`react-plan.md` §1). The
+`addEventListener`/`removeEventListener` in an effect at every call site (`agent-docs → planning-artifacts/react-path-implementation-waves.md` §1). The
 React components take plain callback props instead:
 
 ```tsx
@@ -134,7 +134,7 @@ neither has to happen before `PreviewCard.tsx`'s `<Code>` swap above.
 
 Once the call sites that matter have moved to Step 2, `app/src/views/*.tsx` can render actual chrome
 markup during SSR instead of bare, unstyled `<mosni-*>` tags that only become real markup after
-`mosnicat-core.js` executes client-side (`react-plan.md` §1's "nothing renders server-side" row).
+`mosnicat-core.js` executes client-side (`agent-docs → planning-artifacts/react-path-implementation-waves.md` §1's "nothing renders server-side" row).
 This is not a separate code change so much as a consequence of Step 2 having happened for the views
 that need first-paint-correct chrome — `<Layout>`/`<Header>`/`<Menu>`/`<Panel>` etc. all render
 their real DOM synchronously under `renderToString`/`renderToStaticMarkup`, unlike their custom-

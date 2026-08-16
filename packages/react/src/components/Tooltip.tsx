@@ -34,7 +34,7 @@ export interface TooltipProps {
 // (cloned) anchor and a portalled tip as two top-level nodes via a Fragment, exactly mirroring
 // "the host contributes no box of its own" - there is nothing here for D-R1 to re-introduce.
 //
-// No parity.mjs fixture for the same structural reason as <Modal> (react-plan.md §10): the tip is
+// No parity.mjs fixture for the same structural reason as <Modal> (agent-docs → planning-artifacts/react-path-implementation-waves.md §10): the tip is
 // portalled, and react-dom/server throws on a portal with no real document.body to attach to -
 // `mounted` guards the same way. scripts/react-behaviour.mjs (§5.2) verifies hover-show and the
 // unmount-removes-tip-and-listener cleanup against a live DOM instead.

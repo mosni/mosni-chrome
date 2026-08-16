@@ -1,4 +1,4 @@
-// Parity fixtures (react-plan.md §5.1). Each case gives the SAME content twice: `html` is what a
+// Parity fixtures (agent-docs → planning-artifacts/react-path-implementation-waves.md §5.1). Each case gives the SAME content twice: `html` is what a
 // consumer writes against the custom element, `element` is what the same consumer writes in React.
 // scripts/parity.mjs renders both and fails the build on any structural difference, which is what
 // turns D-17's "renders pixel-identically" from prose into something enforced.
@@ -182,7 +182,7 @@ export const cases: ParityCase[] = [
 
   // --- Wave 2: Field, Switch, Chips -----------------------------------------------------------
   //
-  // Field's `value` and Switch's `checked` are deliberately NEVER exercised here (react-plan.md
+  // Field's `value` and Switch's `checked` are deliberately NEVER exercised here (agent-docs → planning-artifacts/react-path-implementation-waves.md
   // §10): field.ts/switch.ts apply both as PROPERTY writes on the generated control, and neither is
   // a reflected IDL property (unlike e.g. `disabled`/`type`) - a property write never updates the
   // matching content attribute, so the custom element's serialized markup never shows either one no
@@ -302,7 +302,7 @@ export const cases: ParityCase[] = [
 
   // --- Wave 3: Lightbox, Accordion, AccordionItem, Tabs, Tab ----------------------------------
   //
-  // <Modal> and <Tooltip> have NO fixtures here (react-plan.md §10): both eagerly portal their
+  // <Modal> and <Tooltip> have NO fixtures here (agent-docs → planning-artifacts/react-path-implementation-waves.md §10): both eagerly portal their
   // real content to document.body, and react-dom/server THROWS on a portal target that doesn't
   // exist (verified - there is no document.body during renderToStaticMarkup) rather than silently
   // rendering nothing. Both components guard on a client-only `mounted` flag, so under
@@ -450,7 +450,7 @@ export const cases: ParityCase[] = [
   },
 
   {
-    // Both sides render an empty span in this harness (react-plan.md §10): the public icon chunk's
+    // Both sides render an empty span in this harness (agent-docs → planning-artifacts/react-path-implementation-waves.md §10): the public icon chunk's
     // script-src injection never actually fetches under plain jsdom (no resource loader configured
     // - confirmed empirically, and the SAME reason smoke.mjs's mosni-code assertions never check
     // for Prism token spans either), so <mosni-icon> never reaches its `iconsLoaded` state despite

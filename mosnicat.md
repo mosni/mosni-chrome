@@ -223,7 +223,7 @@ The chrome is the shared `main`; each app's views are consumers. The flow:
 - `public/cat.js` — the eye-tracking cat behavior (expects `img#cat-image`, which the bootstrap appends first).
 - `public/mosnicat.png` — the cat.
 - `packages/react/` — `@mosni/react`, the React authoring path above. See `packages/react/README.md`
-  for install/use and `react-plan.md` for the design that produced it (kept around as a durable
+  for install/use and `agent-docs → planning-artifacts/react-path-implementation-waves.md` for the design that produced it (kept around as a durable
   record of the decisions, not something a consumer needs to read).
 - `docs/react-migration-files.md` — the ready-to-run recipe for migrating `mosni/files` onto this
   path, planned but not executed from this repo.

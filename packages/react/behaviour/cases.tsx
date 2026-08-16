@@ -1,4 +1,4 @@
-// Behaviour tests (react-plan.md §5.2): the interaction paths static markup comparison (parity.mjs)
+// Behaviour tests (agent-docs → planning-artifacts/react-path-implementation-waves.md §5.2): the interaction paths static markup comparison (parity.mjs)
 // cannot see - real clicks, live state updates, effect-driven async behaviour, unmount cleanup.
 // Each case gets its own connected container and is responsible for unmounting it when done.
 // scripts/react-behaviour.mjs bundles this file (react/react-dom kept external, same trick

@@ -26,7 +26,7 @@ export interface CodeProps {
 }
 
 // The raw text renders SYNCHRONOUSLY, in the same pass as everything else - the exact bug D-R1's
-// rationale calls out (react-plan.md §1): mosni/files' hand-rolled CodeBlock wrapper inserted the
+// rationale calls out (agent-docs → planning-artifacts/react-path-implementation-waves.md §1): mosni/files' hand-rolled CodeBlock wrapper inserted the
 // host EMPTY and appended text in a useEffect, and <mosni-code> (reading `this.textContent` in
 // connectedCallback) rendered an empty block against it. Only the HIGHLIGHTING needs an effect -
 // that is inherent to Prism (an imperative library that mutates a DOM subtree directly), not

@@ -1,7 +1,7 @@
 import { Icon } from "../../../packages/react/src/index";
 
 // The glyph itself paints lazily, client-side, via the same lazy mosnicat-icons.js chunk
-// <mosni-icon> uses (react-plan.md §4/§10) - under this page's static render there is no browser
+// <mosni-icon> uses (agent-docs → planning-artifacts/react-path-implementation-waves.md §4/§10) - under this page's static render there is no browser
 // to run that effect in, so the demo below shows the (accurate) unpainted state: an empty span per
 // icon. The class path / component path examples above show the painted glyphs for real.
 export default function Example() {

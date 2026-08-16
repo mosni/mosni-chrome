@@ -26,7 +26,7 @@ export interface ModalProps {
 // comment gives for the SAME problem. Portals cannot render during SSR (there is no document.body
 // to attach to; react-dom/server throws on the attempt) - `mounted` guards that: false on the
 // server and on the very first client render, flipping true in an effect, matching §4's "SSR
-// renders nothing" note. This is also WHY Modal has no parity.mjs fixture (react-plan.md §10): the
+// renders nothing" note. This is also WHY Modal has no parity.mjs fixture (agent-docs → planning-artifacts/react-path-implementation-waves.md §10): the
 // custom element renders its dialog eagerly and unconditionally, but React's side would be "no
 // markup at all" under renderToStaticMarkup, and the harness treats that as a fixture error rather
 // than a comparable empty state. scripts/react-behaviour.mjs (§5.2) verifies the real behaviour

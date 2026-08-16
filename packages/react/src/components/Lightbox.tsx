@@ -16,7 +16,7 @@ export interface LightboxProps {
 // exactly mirroring lightbox.ts's own `open()` (the dialog does not exist at all until then). That
 // means, unlike Modal/Tooltip, there is nothing eagerly portalled at mount: the default (unclicked)
 // render has no dialog on either the custom-element or the React side, so THIS component keeps a
-// real parity.mjs fixture for its default state (react-plan.md §10 explains why Modal/Tooltip
+// real parity.mjs fixture for its default state (agent-docs → planning-artifacts/react-path-implementation-waves.md §10 explains why Modal/Tooltip
 // cannot).
 export const Lightbox = forwardRef<HTMLImageElement, LightboxProps>(
   function Lightbox({ src, alt = "", full, caption }, ref): JSX.Element {

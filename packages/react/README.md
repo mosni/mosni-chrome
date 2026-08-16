@@ -1,7 +1,7 @@
 # @mosni/react
 
 The React-native authoring path for [mosnicat](https://mosni.dev), the mosni.dev design system.
-See `react-plan.md` in the repo root for the design this package implements, and `mosnicat.md`'s
+See `agent-docs → planning-artifacts/react-path-implementation-waves.md` for the design this package implements, and `mosnicat.md`'s
 "React path" section for the user-facing contract once it lands (Wave 6).
 
 ## Install
@@ -34,7 +34,7 @@ function SignIn() {
 ```
 
 Every component renders the same DOM as its custom-element counterpart, natively in React — no
-`<mosni-*>` tag is involved (see D-R1 in react-plan.md), so there is no child-ownership conflict
+`<mosni-*>` tag is involved (see D-R1 in agent-docs → planning-artifacts/react-path-implementation-waves.md), so there is no child-ownership conflict
 and SSR is correct on first paint.
 
 ### Types-only step (no runtime change)

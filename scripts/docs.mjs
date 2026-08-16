@@ -197,7 +197,7 @@ const PAIRS = [
   },
 ];
 
-// The generalised version of the old renderPairedSection (react-plan.md §6.2): up to three tabs,
+// The generalised version of the old renderPairedSection (agent-docs → planning-artifacts/react-path-implementation-waves.md §6.2): up to three tabs,
 // in the fixed order React, Component, Class (HTML) - React first (and so `selected`) when
 // present, since it's the tab most consumers of THIS docs page - written for a React app - want by
 // default. `htmlTabs` is exactly what PAIRS already provided (Component + Class(HTML) + any

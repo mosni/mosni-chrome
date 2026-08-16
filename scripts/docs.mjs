@@ -1,6 +1,6 @@
 // Generates the docs page from the fragments in docs/examples/: each fragment is emitted both as a
 // live demo and as its shown snippet, so the two can never drift apart.
-import { readFile, readdir, writeFile } from "node:fs/promises";
+import { readFile, readdir, writeFile, mkdir, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { build } from "esbuild";
@@ -11,6 +11,7 @@ import { bundleAndImport, cleanupScratch } from "./lib/bundle-and-import.mjs";
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const examplesDir = path.join(rootDir, "docs/examples");
 const reactExamplesDir = path.join(examplesDir, "react");
+const scratchDir = path.join(rootDir, ".tmp-verify");
 
 function escapeHtml(source) {
   return source
@@ -79,6 +80,59 @@ async function renderReactExample(id) {
   const mod = await bundleAndImport(file);
   const html = renderToStaticMarkup(createElement(mod.default));
   return { displaySource, html };
+}
+
+function reactDemoIdentifier(id) {
+  return "Ex_" + id.replace(/[^a-zA-Z0-9]/g, "_");
+}
+
+// renderReactExample's renderToStaticMarkup output is real, but it's SSR-only: no React runtime
+// ever attaches to it client-side, so every effect-driven bit of behaviour a React demo relies on
+// (Icon's lazy client-side paint, Code's highlight-on-mount, Dropdown's onClick open/close) never
+// runs on the docs page itself, even though the same components work fine in a real hydrated app.
+// This builds one browser bundle (react/react-dom inlined, same non-external choice
+// visual-parity.mjs's harness bundle makes, for the same reason: it has to run standalone with no
+// bundler of its own) that mounts a real client-side React root over each `#<id>-react-demo`
+// container once the page loads, replacing the static markup with a live, interactive tree.
+async function buildReactDemoBundle(reactExampleIds, distDir) {
+  await mkdir(scratchDir, { recursive: true });
+  const entryPath = path.join(scratchDir, "docs-react-demo-entry.mjs");
+
+  let imports = "";
+  let entries = "";
+  for (const id of reactExampleIds) {
+    const varName = reactDemoIdentifier(id);
+    imports += `import ${varName} from ${JSON.stringify(path.join(reactExamplesDir, `${id}.tsx`))};\n`;
+    entries += `  [${JSON.stringify(id)}, ${varName}],\n`;
+  }
+
+  await writeFile(
+    entryPath,
+    `import { createElement } from "react";
+import { createRoot } from "react-dom/client";
+${imports}
+const examples = [
+${entries}
+];
+for (const [id, Component] of examples) {
+  const container = document.getElementById(id + "-react-demo");
+  if (!container) continue;
+  container.replaceChildren();
+  createRoot(container).render(createElement(Component));
+}
+`,
+  );
+
+  await build({
+    entryPoints: [entryPath],
+    outfile: path.join(distDir, "docs-react.js"),
+    bundle: true,
+    minify: true,
+    format: "iife",
+    platform: "browser",
+    target: "es2020",
+    jsx: "automatic",
+  });
 }
 
 function renderAttributeTable(meta) {
@@ -367,6 +421,7 @@ export async function generateDocs({ distDir }) {
     ),
   );
 
+  await buildReactDemoBundle(reactExampleIds, distDir);
   await cleanupScratch();
 
   const navItemsHtml = navItems
@@ -382,6 +437,7 @@ export async function generateDocs({ distDir }) {
     <meta charset="utf-8" />
     <title>Hannah's design library</title>
     <script src="mosnicat.js"></script>
+    <script src="docs-react.js" defer></script>
     <style>
       @media (prefers-reduced-motion: no-preference) {
         html {

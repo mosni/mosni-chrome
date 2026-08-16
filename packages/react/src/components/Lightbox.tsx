@@ -1,16 +1,24 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
-import type { JSX, PointerEvent as ReactPointerEvent } from "react";
+import type {
+  ComponentPropsWithoutRef,
+  JSX,
+  PointerEvent as ReactPointerEvent,
+} from "react";
 import { createPortal } from "react-dom";
 import { XGlyph } from "../icons.generated";
+import { mergeClassName } from "../internal/merge-class-name";
 
-export interface LightboxProps {
+export type LightboxProps = Omit<
+  ComponentPropsWithoutRef<"img">,
+  "src" | "alt" | "onClick"
+> & {
   src: string;
   alt?: string;
   /** Full-resolution src for the overlay; defaults to `src` (the thumbnail's own), same as
    * lightbox.ts's `full` attribute defaulting to `thumb.src`. */
   full?: string;
   caption?: string;
-}
+};
 
 // Unlike <Modal>, the overlay dialog here is built LAZILY - only once the thumbnail is clicked,
 // exactly mirroring lightbox.ts's own `open()` (the dialog does not exist at all until then). That
@@ -19,7 +27,10 @@ export interface LightboxProps {
 // real parity.mjs fixture for its default state (agent-docs → planning-artifacts/react-path-implementation-waves.md §10 explains why Modal/Tooltip
 // cannot).
 export const Lightbox = forwardRef<HTMLImageElement, LightboxProps>(
-  function Lightbox({ src, alt = "", full, caption }, ref): JSX.Element {
+  function Lightbox(
+    { src, alt = "", full, caption, className, ...rest },
+    ref,
+  ): JSX.Element {
     const [open, setOpen] = useState(false);
     const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -36,7 +47,8 @@ export const Lightbox = forwardRef<HTMLImageElement, LightboxProps>(
     return (
       <>
         <img
-          className="lightbox-thumb"
+          {...rest}
+          className={mergeClassName("lightbox-thumb", className)}
           src={src}
           alt={alt}
           ref={ref}

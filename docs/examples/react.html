@@ -2,25 +2,25 @@
   <code>@mosni/react</code> is a third authoring path for mosnicat, alongside
   the <code>&lt;mosni-*&gt;</code> custom elements and plain HTML/classes.
   Components render the same DOM directly in React, with no custom element in
-  the loop — so no ownership conflicts, no upgrade timing, and correct SSR on
-  first paint.
+  the loop. No ownership conflicts, no upgrade timing, correct SSR on first
+  paint.
 </p>
 
 <h3>Install</h3>
 <p>
-  Not published to a registry — install straight from the tarball URL. npm
+  Not published to a registry. Install straight from the tarball URL: npm
   records the resolved URL and an integrity hash in the lockfile, so it stays
-  pinned and reproducible:
+  pinned and reproducible.
 </p>
 <mosni-code language="json" no-copy>
   <pre>"@mosni/react": "https://ui.mosni.dev/mosni-react-0.1.0.tgz"</pre>
 </mosni-code>
-<p><code>react &gt;= 18</code> is a peer dependency — bring your own.</p>
+<p><code>react &gt;= 18</code> is a peer dependency. Bring your own.</p>
 
 <h3>Keep the bootstrap script tag</h3>
 <p>
   The React package ships no CSS. Keep the mosnicat bootstrap script for
-  styling, fonts, favicon, and viewport — a theme or colour change still reaches
+  styling, fonts, favicon, and viewport. A theme or colour change still reaches
   every app without a redeploy:
 </p>
 <mosni-code language="html" no-copy>
@@ -88,14 +88,14 @@
   server and client. React 19 also hoists a
   <code>&lt;link rel="preload" as="image"&gt;</code> ahead of any component
   containing an <code>&lt;img&gt;</code> (<code>&lt;Logo&gt;</code>, and by
-  extension <code>&lt;Header&gt;</code>/<code>&lt;Layout&gt;</code>) — expected
-  output, not a bug.
+  extension <code>&lt;Header&gt;</code>/<code>&lt;Layout&gt;</code>). That's
+  expected output, not a bug.
 </p>
 <p>
   <code>&lt;Modal&gt;</code>, <code>&lt;Tooltip&gt;</code>, and
   <code>&lt;Lightbox&gt;</code>'s open overlay portal their floating content to
   <code>document.body</code>, which doesn't exist during SSR. Until the client
-  mounts, these render only their non-portalled part — a modal's trigger button,
+  mounts, these render only their non-portalled part: a modal's trigger button,
   for example.
 </p>
 
@@ -103,6 +103,6 @@
 <p>
   Component <em>markup</em> updates only when the app bumps the
   <code>@mosni/react</code> package version; CSS still updates live from the CDN
-  bootstrap. The class path has the same property — only the custom-element path
+  bootstrap. The class path has the same property. Only the custom-element path
   picks up markup changes without a redeploy.
 </p>

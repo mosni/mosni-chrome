@@ -42,11 +42,13 @@
     height: 28px;
   }
 
-  .header {
-    height: auto;
-    min-height: var(--header-height);
-    flex-wrap: wrap;
-  }
+  // ⚠ The header stays ONE row at every width (Hannah, 2026-08-16). This block used to say
+  // `height: auto; min-height: var(--header-height); flex-wrap: wrap`, which was half-dead: a media
+  // query adds no specificity and the plain `.header { height: var(--header-height) }` below sits later
+  // in the file, so `height: auto` never applied while `flex-wrap: wrap` — which nothing else declares —
+  // did. The header therefore wrapped onto a second row but could not grow, and the wrapped row printed
+  // straight over the purple bottom border. Rather than let it grow, the header is now pinned to one
+  // row and the tagline shrinks; see `.header > a:has(.header-brand)` and `.little-link` below.
 }
 
 .header {
@@ -61,6 +63,20 @@
   padding: 0 1.25rem 0 1rem;
   height: var(--header-height);
   min-width: 0;
+  // The tagline is right-aligned by its own `margin-left: auto`, but once it is allowed to shrink
+  // (below) a full-width tagline shrinks until it butts straight against the wordmark - `margin-left:
+  // auto` only distributes space that is actually free, and at that point none is. This keeps a gap
+  // that survives the shrink, so the tagline never reads as left-aligned against the brand.
+  gap: 0.75rem;
+}
+
+// Everything below keeps the header on one row at any width, and decides which part gives way when
+// there is not enough of it. ⚠ **The brand never does** (Hannah, 2026-08-16) — logo and wordmark are
+// the brand lockup, and an ellipsised wordmark ("HANNAH'S F…") is worse than any amount of truncation
+// elsewhere. So the lockup is `flex-shrink: 0` and carries no `text-overflow` rule at all; the tagline
+// is the only item that shrinks, and it absorbs the whole shortfall.
+.header > a:has(.header-brand) {
+  flex-shrink: 0;
 }
 
 .header-mid {
@@ -72,6 +88,13 @@
   margin-right: 0.5rem;
   font-size: 0.75rem;
   color: var(--mosni-text-muted);
+  // The only item in the header that shrinks (the brand lockup above is pinned). Overflow is hidden
+  // here as well as on the slot's own content so that a consumer filling the slot with plain text (the
+  // `tagline` attribute path in header.ts) is truncated too, not just one that styles its own children.
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .little-link:hover,

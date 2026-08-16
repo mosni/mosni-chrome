@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { generateDocs } from "./docs.mjs";
 import subsetFont from "subset-font";
+import { buildReactPackage } from "./build-react.mjs";
 
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const distDir = path.join(rootDir, "dist");
@@ -157,6 +158,7 @@ async function main() {
   await copyAssets();
   await generateDocs({ rootDir, distDir });
   await writeLoginButtonDemo();
+  await buildReactPackage({ rootDir, distDir });
   console.log("build: OK - dist/ written");
 }
 

@@ -1,4 +1,5 @@
 import { MosniElement, define, assetBase } from "../base-element";
+import { loadChunk } from "../shared/load-chunk";
 
 declare global {
   interface Window {
@@ -8,7 +9,7 @@ declare global {
 
 const ICON_CHUNK_URL = `${assetBase}mosnicat-icons.js`;
 
-let iconState: "unloaded" | "loading" | "loaded" | "error" = "unloaded";
+let iconsLoaded = false;
 const pending: (() => void)[] = [];
 
 const flushPending = (): void => {
@@ -16,28 +17,15 @@ const flushPending = (): void => {
 };
 
 const ensureLoaded = (): void => {
-  if (iconState === "loaded" || iconState === "loading") return;
-  const existing = document.querySelector(`script[src="${ICON_CHUNK_URL}"]`);
-  const wire = (script: Element): void => {
-    iconState = "loading";
-    script.addEventListener("load", () => {
-      iconState = "loaded";
+  if (iconsLoaded) return;
+  loadChunk(ICON_CHUNK_URL)
+    .then(() => {
+      iconsLoaded = true;
       flushPending();
+    })
+    .catch(() => {
+      /* the chunk failed to load - icons stay unpainted, same as before this extraction */
     });
-    script.addEventListener("error", () => {
-      iconState = "error";
-    });
-  };
-
-  if (existing) {
-    wire(existing);
-    return;
-  }
-
-  const script = document.createElement("script");
-  script.src = ICON_CHUNK_URL;
-  wire(script);
-  document.head.appendChild(script);
 };
 
 class MosniIcon extends MosniElement {
@@ -49,7 +37,7 @@ class MosniIcon extends MosniElement {
       if (svg) this.replaceChildren(svg);
     };
 
-    if (iconState === "loaded") {
+    if (iconsLoaded) {
       paint();
     } else {
       pending.push(paint);

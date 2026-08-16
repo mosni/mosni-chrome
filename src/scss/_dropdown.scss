@@ -1,6 +1,9 @@
 @use "shared";
 
-mosni-dropdown {
+// `.dropdown` twin (D-R11): this rule carries a real positioning context, not just a host reset, so
+// the React path (which renders `div.dropdown` and never the custom element) needs it too.
+mosni-dropdown,
+.dropdown {
   position: relative;
   display: inline-block;
 }

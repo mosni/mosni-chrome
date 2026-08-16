@@ -1,5 +1,6 @@
 import { MosniElement, define, assetBase } from "../base-element";
 import { icon } from "../icons";
+import { loadChunk } from "../shared/load-chunk";
 
 declare global {
   interface Window {
@@ -9,7 +10,7 @@ declare global {
 
 const PRISM_CHUNK_URL = `${assetBase}mosnicat-prism.js`;
 
-let prismState: "unloaded" | "loading" | "loaded" | "error" = "unloaded";
+let prismLoaded = false;
 const pending: Element[] = [];
 
 const highlightNow = (codeEl: Element): void => {
@@ -21,30 +22,15 @@ const flushPending = (): void => {
 };
 
 const ensurePrismLoaded = (): void => {
-  if (prismState === "loaded" || prismState === "loading") return;
-  const existing = document.querySelector(`script[src="${PRISM_CHUNK_URL}"]`);
-  if (existing) {
-    prismState = "loading";
-    existing.addEventListener("load", () => {
-      prismState = "loaded";
+  if (prismLoaded) return;
+  loadChunk(PRISM_CHUNK_URL)
+    .then(() => {
+      prismLoaded = true;
       flushPending();
+    })
+    .catch(() => {
+      /* the chunk failed to load - code stays unhighlighted, same as before this extraction */
     });
-    existing.addEventListener("error", () => {
-      prismState = "error";
-    });
-    return;
-  }
-  prismState = "loading";
-  const script = document.createElement("script");
-  script.src = PRISM_CHUNK_URL;
-  script.addEventListener("load", () => {
-    prismState = "loaded";
-    flushPending();
-  });
-  script.addEventListener("error", () => {
-    prismState = "error";
-  });
-  document.head.appendChild(script);
 };
 
 class MosniCode extends MosniElement {
@@ -87,7 +73,7 @@ class MosniCode extends MosniElement {
     pre.appendChild(code);
     this.appendChild(pre);
 
-    if (prismState === "loaded") {
+    if (prismLoaded) {
       highlightNow(code);
     } else {
       pending.push(code);

@@ -163,6 +163,20 @@ ${source}
     </section>`;
 }
 
+// For a fragment that IS the reading content (prose, headings, its own embedded <mosni-code>
+// snippets) rather than a demo to reproduce - renderSection's live-demo box + raw-source dump
+// below it only make sense when the fragment is markup a reader would copy. Dumping react.html's
+// own <p>/<h3>/<ul> soup as an HTML code block taught the reader nothing, so this renders the
+// fragment as plain page content instead.
+function renderProseSection(filename, source) {
+  const id = filename.replace(/\.html$/, "");
+  const title = titleFromFilename(filename);
+  return `    <section class="doc-example" id="${id}">
+      <h2>${title}</h2>
+${source}
+    </section>`;
+}
+
 const PAIRS = [
   {
     title: "Header",
@@ -270,9 +284,10 @@ const COMPONENTS_INTRO = `    <section class="doc-example-intro">
     </section>`;
 
 // docs/examples/react.html (§6.1): a peer of "Component"/"Class (HTML)" at the nav level, not a
-// component section - placed immediately before the components intro, exactly like the plan
-// specifies, by pulling it out of the normal alphabetical filename loop below (its own filename
-// would otherwise sort well before any mosni-* file) and inserting it by hand at that point.
+// component section - pulled out of the normal alphabetical filename loop below (its own filename
+// would otherwise sort in the middle of the mosni-* files) and appended by hand after every other
+// section, so the page reads as class/component docs first and the React path last, rather than
+// interleaving the two.
 const REACT_SECTION_ID = "react";
 
 export async function generateDocs({ distDir }) {
@@ -304,17 +319,9 @@ export async function generateDocs({ distDir }) {
 
   for (const filename of filenames) {
     const id = filename.replace(/\.html$/, "");
-    if (id === REACT_SECTION_ID) continue; // handled below, right before the components intro
+    if (id === REACT_SECTION_ID) continue; // appended after the loop, at the very end of the page
 
     if (!insertedComponentsIntro && id.startsWith("mosni-")) {
-      navItems.push({ id: REACT_SECTION_ID, title: "React" });
-      sections.push(
-        renderSection(
-          `${REACT_SECTION_ID}.html`,
-          sourceById.get(REACT_SECTION_ID),
-          componentMetaByTag,
-        ),
-      );
       sections.push(COMPONENTS_INTRO);
       insertedComponentsIntro = true;
     }
@@ -351,6 +358,14 @@ export async function generateDocs({ distDir }) {
       ),
     );
   }
+
+  navItems.push({ id: REACT_SECTION_ID, title: "React" });
+  sections.push(
+    renderProseSection(
+      `${REACT_SECTION_ID}.html`,
+      sourceById.get(REACT_SECTION_ID),
+    ),
+  );
 
   await cleanupScratch();
 

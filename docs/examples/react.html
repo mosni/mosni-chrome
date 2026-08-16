@@ -1,16 +1,16 @@
 <p>
-  <code>@mosni/react</code> is a third first-class authoring path for mosnicat,
-  alongside the <code>&lt;mosni-*&gt;</code> custom elements and the plain
-  HTML/class form. Every component renders the same DOM natively in React — no
-  custom element is involved, so there is no child-ownership conflict, no
-  upgrade timing, and server rendering is correct on first paint.
+  <code>@mosni/react</code> is a third authoring path for mosnicat, alongside
+  the <code>&lt;mosni-*&gt;</code> custom elements and plain HTML/classes.
+  Components render the same DOM directly in React, with no custom element in
+  the loop — so no ownership conflicts, no upgrade timing, and correct SSR on
+  first paint.
 </p>
 
 <h3>Install</h3>
 <p>
-  Not published to a registry — depend on the tarball URL directly (npm records
-  the resolved URL and an integrity hash in the lockfile, so this stays
-  reproducible and pinned):
+  Not published to a registry — install straight from the tarball URL. npm
+  records the resolved URL and an integrity hash in the lockfile, so it stays
+  pinned and reproducible:
 </p>
 <mosni-code language="json" no-copy>
   <pre>"@mosni/react": "https://ui.mosni.dev/mosni-react-0.1.0.tgz"</pre>
@@ -19,9 +19,9 @@
 
 <h3>Keep the bootstrap script tag</h3>
 <p>
-  The React package ships <strong>zero CSS</strong>. Keep the usual mosnicat
-  bootstrap for styling/fonts/favicon/viewport — a theme or colour change still
-  lands on every app with no redeploy:
+  The React package ships no CSS. Keep the mosnicat bootstrap script for
+  styling, fonts, favicon, and viewport — a theme or colour change still reaches
+  every app without a redeploy:
 </p>
 <mosni-code language="html" no-copy>
   <pre>&lt;script src="https://mosni.dev/mosnicat.js"&gt;&lt;/script&gt;</pre>
@@ -67,8 +67,7 @@
 <h3>Types-only step (no runtime change)</h3>
 <p>
   Add <code>JSX.IntrinsicElements</code> declarations for every
-  <code>&lt;mosni-*&gt;</code> tag with one import, and delete any
-  hand-maintained
+  <code>&lt;mosni-*&gt;</code> tag with one import. Delete any hand-maintained
   <code>declare module "react" { namespace JSX { … } }</code> block doing the
   same job:
 </p>
@@ -76,40 +75,34 @@
   <pre>import "@mosni/react/elements";</pre>
 </mosni-code>
 <p>
-  This alone type-checks existing <code>&lt;mosni-*&gt;</code> markup with zero
+  This type-checks existing <code>&lt;mosni-*&gt;</code> markup with zero
   behavioural change. Adopt individual <code>&lt;X&gt;</code> React components
-  only where the ownership bugs actually bite.
+  where the ownership bugs actually bite.
 </p>
 
 <h3>SSR</h3>
 <p>
-  Every component is SSR-safe: nothing reads <code>window</code>/<code
-    >document</code
-  >
-  at module scope, and generated ids use <code>useId()</code> (never a
-  module-level counter, which would desync between server and client). One thing
-  to expect in the rendered HTML: React 19 hoists resource hints for anything
+  Every component is SSR-safe: nothing reads <code>window</code> or
+  <code>document</code> at module scope, and generated ids use
+  <code>useId()</code> instead of a module-level counter that would desync
+  server and client. React 19 also hoists a
+  <code>&lt;link rel="preload" as="image"&gt;</code> ahead of any component
   containing an <code>&lt;img&gt;</code> (<code>&lt;Logo&gt;</code>, and by
-  extension <code>&lt;Header&gt;</code>/<code>&lt;Layout&gt;</code>) — a
-  <code>&lt;link rel="preload" as="image"&gt;</code> ahead of the component's
-  own markup. That's correct, useful output your document head absorbs on
-  hydration, not a bug.
+  extension <code>&lt;Header&gt;</code>/<code>&lt;Layout&gt;</code>) — expected
+  output, not a bug.
 </p>
 <p>
-  A few components — <code>&lt;Modal&gt;</code>, <code>&lt;Tooltip&gt;</code>,
-  <code>&lt;Lightbox&gt;</code>'s open overlay — portal their floating content
-  to <code>document.body</code>. A portal cannot render during SSR (there is no
-  <code>document.body</code> yet), so these render only their non-portalled part
-  (e.g. a modal's trigger button) until the client mounts and the portal takes
-  over.
+  <code>&lt;Modal&gt;</code>, <code>&lt;Tooltip&gt;</code>, and
+  <code>&lt;Lightbox&gt;</code>'s open overlay portal their floating content to
+  <code>document.body</code>, which doesn't exist during SSR. Until the client
+  mounts, these render only their non-portalled part — a modal's trigger button,
+  for example.
 </p>
 
 <h3>The version-locking caveat</h3>
 <p>
-  A React consumer's component <em>markup</em> updates only when the app bumps
-  the <code>@mosni/react</code> package version; CSS still updates live from the
-  CDN bootstrap. This is not a regression — the hand-written class path is
-  first-class forever and has exactly the same property. Both authoring paths
-  trade a little freshness for stability at a page's build time; only the
-  custom-element path picks up markup changes without a redeploy.
+  Component <em>markup</em> updates only when the app bumps the
+  <code>@mosni/react</code> package version; CSS still updates live from the CDN
+  bootstrap. The class path has the same property — only the custom-element path
+  picks up markup changes without a redeploy.
 </p>

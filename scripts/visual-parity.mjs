@@ -12,7 +12,7 @@
 // session that changes rendering is not done until both `verify` and `test:visual` are green.
 import { createServer } from "node:http";
 import { readFile, stat, mkdir, rm, writeFile } from "node:fs/promises";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { build } from "esbuild";
 import { chromium } from "@playwright/test";
@@ -59,7 +59,13 @@ async function loadCaseMetadata() {
         `${name}: classHtml is null but no classGap reason was given`,
       );
     }
-    return { name, html, classHtml, classGap, widths: widths ?? DEFAULT_WIDTHS };
+    return {
+      name,
+      html,
+      classHtml,
+      classGap,
+      widths: widths ?? DEFAULT_WIDTHS,
+    };
   });
 }
 
@@ -73,7 +79,11 @@ async function loadCaseMetadata() {
 // INTERACTION (as opposed to initial paint) stays covered by react-behaviour.mjs, unchanged.
 async function buildBrowserBundle() {
   await mkdir(distDir, { recursive: true });
-  const scratchEntry = path.join(rootDir, ".tmp-verify", "visual-harness-entry.tsx");
+  const scratchEntry = path.join(
+    rootDir,
+    ".tmp-verify",
+    "visual-harness-entry.tsx",
+  );
   await mkdir(path.dirname(scratchEntry), { recursive: true });
   await writeFile(
     scratchEntry,
@@ -147,7 +157,10 @@ async function startServer(cases) {
     }
     // Static file serving from dist/, defaulting to index.html — mirrors the shape of `http-server`
     // closely enough for this harness's needs, with no new dependency.
-    let filePath = path.join(distDir, decodeURIComponent(req.url.split("?")[0]));
+    let filePath = path.join(
+      distDir,
+      decodeURIComponent(req.url.split("?")[0]),
+    );
     if (req.url === "/") filePath = path.join(distDir, "index.html");
     try {
       const data = await readFile(filePath);
@@ -229,7 +242,8 @@ async function comparePixels(page, bufferA, bufferB) {
       const buf = await blob.arrayBuffer();
       let binary = "";
       const bytes = new Uint8Array(buf);
-      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      for (let i = 0; i < bytes.length; i++)
+        binary += String.fromCharCode(bytes[i]);
       return {
         equal: false,
         diffCount,
@@ -241,7 +255,14 @@ async function comparePixels(page, bufferA, bufferB) {
   );
 }
 
-async function writeDiffArtifacts(fixtureName, width, label, bufA, bufB, result) {
+async function writeDiffArtifacts(
+  fixtureName,
+  width,
+  label,
+  bufA,
+  bufB,
+  result,
+) {
   await mkdir(diffDir, { recursive: true });
   const base = `${fixtureName.replace(/\//g, "-")}-${width}-${label}`;
   await writeFile(path.join(diffDir, `${base}-a.png`), bufA);
@@ -266,7 +287,8 @@ async function runFixtureAtWidth(page, baseUrl, kase, index, width) {
   await page.waitForLoadState("networkidle");
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(
-    () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
+    () =>
+      new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
   );
 
   const pathA = page.locator("#path-a");
@@ -276,7 +298,14 @@ async function runFixtureAtWidth(page, baseUrl, kase, index, width) {
 
   const resultAC = await comparePixels(page, bufA, bufC);
   if (!resultAC.equal) {
-    const base = await writeDiffArtifacts(kase.name, width, "react", bufA, bufC, resultAC);
+    const base = await writeDiffArtifacts(
+      kase.name,
+      width,
+      "react",
+      bufA,
+      bufC,
+      resultAC,
+    );
     fail(
       `${kase.name} @ ${width}px: element vs React differ (${resultAC.reason ?? `${resultAC.diffCount} px`}) — see dist/visual-diff/${base}-{a,b,diff}.png`,
     );
@@ -287,7 +316,14 @@ async function runFixtureAtWidth(page, baseUrl, kase, index, width) {
     const bufB = await pathB.screenshot();
     const resultAB = await comparePixels(page, bufA, bufB);
     if (!resultAB.equal) {
-      const base = await writeDiffArtifacts(kase.name, width, "class", bufA, bufB, resultAB);
+      const base = await writeDiffArtifacts(
+        kase.name,
+        width,
+        "class",
+        bufA,
+        bufB,
+        resultAB,
+      );
       fail(
         `${kase.name} @ ${width}px: element vs class differ (${resultAB.reason ?? `${resultAB.diffCount} px`}) — see dist/visual-diff/${base}-{a,b,diff}.png`,
       );
@@ -343,7 +379,9 @@ async function main() {
   }
 
   if (classGaps.length > 0) {
-    console.log(`\ntest:visual — ${classGaps.length} declared class-path gap(s):`);
+    console.log(
+      `\ntest:visual — ${classGaps.length} declared class-path gap(s):`,
+    );
     for (const g of classGaps) console.log(`  - ${g}`);
   }
 

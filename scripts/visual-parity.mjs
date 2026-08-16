@@ -145,6 +145,20 @@ ${kase.classHtml !== null ? `<div id="path-b">${kase.classHtml}</div>` : ""}
 </body></html>`;
 }
 
+// A missing/wrong Content-Type is not cosmetic here: an <img src="…svg"> served with no
+// content-type renders as a broken image (alt text + placeholder icon) in Chromium, which this
+// harness would otherwise read as a real Logo pixel mismatch rather than a server bug — it already
+// did, once, while this map was missing.
+const CONTENT_TYPES = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".woff2": "font/woff2",
+  ".json": "application/json; charset=utf-8",
+};
+
 async function startServer(cases) {
   const server = createServer(async (req, res) => {
     const m = req.url.match(/^\/__visual\/(\d+)\/(\d+)$/);
@@ -164,7 +178,9 @@ async function startServer(cases) {
     if (req.url === "/") filePath = path.join(distDir, "index.html");
     try {
       const data = await readFile(filePath);
-      res.writeHead(200);
+      const contentType =
+        CONTENT_TYPES[path.extname(filePath)] ?? "application/octet-stream";
+      res.writeHead(200, { "content-type": contentType });
       res.end(data);
     } catch {
       res.writeHead(404);

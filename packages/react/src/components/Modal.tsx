@@ -46,13 +46,18 @@ export const Modal = forwardRef<HTMLDialogElement, ModalProps>(function Modal(
   const isOpen = isControlled ? open : uncontrolledOpen;
 
   // Mirrors modal.ts's attributeChangedCallback exactly: showModal()/close() drive the native
-  // top-layer state, the prop is a REQUEST, never a direct DOM attribute flip.
+  // top-layer state, the prop is a REQUEST, never a direct DOM attribute flip. Depends on
+  // `mounted` too, not just `isOpen`: the portal (and so `dialogRef.current`) does not exist until
+  // the `mounted` gate flips true on the render AFTER this one, so `open`/`defaultOpen` set true
+  // from the very first render used to bail out here (dialog still null) and then never re-fire —
+  // `isOpen` itself never changes value afterward, and a useEffect only re-runs when a dependency
+  // actually changes. Adding `mounted` gives it that second, dialog-populated chance to run.
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (isOpen && !dialog.open) dialog.showModal();
     else if (!isOpen && dialog.open) dialog.close();
-  }, [isOpen]);
+  }, [isOpen, mounted]);
 
   // Both dismissal paths (close button, backdrop pointerdown) call the NATIVE dialog.close() -
   // same single path modal.ts's own `this.close()` uses for both - so there is exactly one place

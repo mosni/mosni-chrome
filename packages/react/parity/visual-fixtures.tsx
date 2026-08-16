@@ -11,18 +11,23 @@ import {
   Accordion,
   AccordionItem,
   Chips,
+  Dropdown,
+  DropdownItem,
   Field,
   Footer,
   Header,
   Layout,
+  Lightbox,
   Logo,
   Menu,
   MenuItem,
+  Modal,
   Panel,
   Slider,
   Switch,
   Tab,
   Tabs,
+  Tooltip,
 } from "../src/index";
 
 // Renders the SAME markup icons.generated.tsx's <XGlyph> components do, byte-for-byte (path data
@@ -35,6 +40,10 @@ function svgIcon(paths: string[], size = 20): string {
 }
 const MENU_ICON = svgIcon(["M4 5h16", "M4 12h16", "M4 19h16"]);
 const CHEVRON_DOWN_ICON = svgIcon(["m6 9 6 6 6-6"], 16);
+const X_ICON = svgIcon(["M18 6 6 18", "m6 6 12 12"]);
+// MoreVerticalGlyph uses <circle> elements, not <path> — svgIcon() only emits paths, so this is
+// written out directly to stay byte-for-byte identical.
+const MORE_VERTICAL_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>`;
 
 // Matches switch.ts's generated markup exactly (label.switch > input + span.switch-visual >
 // span.switch-thumb, then the label text) — reused for the standalone Switch fixture and for
@@ -62,6 +71,18 @@ export interface VisualCase {
   classGap?: string;
   /** Widths to shoot at. Defaults to [1280, 360]. */
   widths?: number[];
+  /**
+   * For portal components (Modal, Tooltip): a CSS selector for the real subject once it exists
+   * ANYWHERE on the page, not just inside the mount container — both paths portal their open
+   * content to document.body. When set, each path renders on its OWN navigation (there is only
+   * ever one portal target on a page at a time) instead of sharing one page with the other paths.
+   */
+  subjectSelector?: string;
+  /** Portal-only: a selector (scoped within the mount container) to dispatch `revealEvent` on
+   * before screenshotting — for subjects with no open/defaultOpen prop, only a real hover/focus
+   * trigger (Tooltip). Defaults to "mouseenter" when unset. */
+  revealSelector?: string;
+  revealEvent?: string;
 }
 
 export const visualCases: VisualCase[] = [
@@ -216,5 +237,92 @@ export const visualCases: VisualCase[] = [
       <Slider stops={["A", "B", "C"]} defaultValue={1} label="Pick one" />
     ),
     classHtml: `<div class="slider"><label class="slider-label" for="slider-demo">Pick one</label><div class="slider-track-wrap"><input type="range" class="slider-input" id="slider-demo" min="0" max="2" step="1" aria-label="Pick one" aria-valuetext="B" value="1"><div class="slider-ticks" aria-hidden="true"><span class="slider-tick"></span><span class="slider-tick"></span><span class="slider-tick"></span></div><div class="slider-ends" aria-hidden="true"><span class="slider-end slider-end-start">A</span><span class="slider-end slider-end-end">C</span></div></div><div class="slider-readout" aria-hidden="true">B</div></div>`,
+  },
+
+  // --- Overlay group ----------------------------------------------------------------------------
+  //
+  // mosni-toast/<Toast> is deliberately NOT covered here (nor by structural parity.mjs): both
+  // paths render nothing of their own (Toast returns null) and delegate to the SAME shared
+  // window.mosni.toast() host function on mount - there is no per-path static subject to compare,
+  // only a mount-time side effect, which scripts/react-behaviour.mjs already exercises.
+
+  {
+    name: "mosni-dropdown/default",
+    html: `<mosni-dropdown label="Actions"><mosni-dropdown-item value="edit">Edit</mosni-dropdown-item><mosni-dropdown-item value="delete" variant="danger">Delete</mosni-dropdown-item></mosni-dropdown>`,
+    element: (
+      <Dropdown label="Actions">
+        <DropdownItem value="edit">Edit</DropdownItem>
+        <DropdownItem value="delete" variant="danger">
+          Delete
+        </DropdownItem>
+      </Dropdown>
+    ),
+    // The menu's runtime position (dropdown.ts's positionDropdownMenu) is only computed on open,
+    // so it never affects this CLOSED-state fixture - [hidden] keeps it out of the static comparison.
+    classHtml: `<div class="dropdown"><button type="button" class="dropdown-trigger" id="dropdown-demo-trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="dropdown-demo">Actions${CHEVRON_DOWN_ICON}</button><div class="dropdown-menu" id="dropdown-demo" role="menu" aria-labelledby="dropdown-demo-trigger" hidden><button type="button" class="dropdown-item" role="menuitem" tabindex="-1">Edit</button><button type="button" class="dropdown-item dropdown-item-danger" role="menuitem" tabindex="-1">Delete</button></div></div>`,
+  },
+  {
+    name: "mosni-dropdown/icon-only",
+    html: `<mosni-dropdown label="More" icon-only><mosni-dropdown-item value="edit">Edit</mosni-dropdown-item></mosni-dropdown>`,
+    element: (
+      <Dropdown label="More" iconOnly>
+        <DropdownItem value="edit">Edit</DropdownItem>
+      </Dropdown>
+    ),
+    classHtml: `<div class="dropdown"><button type="button" class="dropdown-trigger dropdown-trigger-icon" id="dropdown-icon-demo-trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="dropdown-icon-demo" aria-label="More">${MORE_VERTICAL_ICON}</button><div class="dropdown-menu" id="dropdown-icon-demo" role="menu" aria-labelledby="dropdown-icon-demo-trigger" hidden><button type="button" class="dropdown-item" role="menuitem" tabindex="-1">Edit</button></div></div>`,
+  },
+  {
+    // Default (unclicked) state only — the overlay dialog is built lazily on click, on both
+    // paths, so unlike Modal/Tooltip there is nothing eagerly portalled to compare here.
+    name: "mosni-lightbox/default",
+    html: `<mosni-lightbox><img src="/mosni.svg" alt="Preview"></mosni-lightbox>`,
+    element: <Lightbox src="/mosni.svg" alt="Preview" />,
+    classHtml: `<img class="lightbox-thumb" src="/mosni.svg" alt="Preview">`,
+  },
+  {
+    // Portal: both paths append the real dialog to document.body, not inside their mount
+    // container — subjectSelector finds it wherever it lands (see the harness's portal-fixture
+    // path).
+    name: "mosni-modal/open",
+    html: `<mosni-modal open heading="Sign in"><p>Body copy.</p></mosni-modal>`,
+    element: (
+      <Modal defaultOpen heading="Sign in">
+        <p>Body copy.</p>
+      </Modal>
+    ),
+    // `.modal`'s CSS (position:fixed; inset:0; margin:auto) is itself pure and reproducible with
+    // classes alone — a plain `<dialog class="modal" open>` + `autofocus` (to match showModal()'s
+    // native "focus the first focusable descendant") gets structurally and visually VERY close.
+    // What remains is not CSS: calling the real showModal() engages the browser's own top-layer
+    // semantics (a real ::backdrop, and — confirmed empirically at 360px, a consistent ~4px width
+    // difference matching a scrollbar-gutter reservation showModal()'s scroll-lock adds and a plain
+    // `open` attribute does not) that measurably shifts the fixed-position centering math by a
+    // sub-pixel amount, visible as edge/border anti-aliasing drift under a zero-tolerance
+    // comparison. A hand-typed dialog cannot engage that without calling showModal() itself, which
+    // would no longer be "hand-typed markup" in any meaningful sense — the same class of gap as
+    // Tooltip below, just CSS-adjacent rather than position-adjacent.
+    classHtml: null,
+    classGap:
+      "showModal()'s native top-layer semantics (real ::backdrop, scroll-lock/scrollbar-gutter reservation) measurably shift the fixed-position centering math versus a plain `open` attribute; reproducing it exactly would require calling showModal() itself, which a hand-typed class markup cannot do",
+    subjectSelector: "dialog.modal",
+  },
+  {
+    // Portal + runtime position: tooltip.ts/Tooltip.tsx both compute top/left from the anchor's
+    // and tip's MEASURED rects (positionTooltip, D-R8) once the tip is shown — there is no way to
+    // hand-type that position without running the same JS, so this is a genuine classGap, the
+    // same shape as Toast's "inherently behavioural" exclusion (W3-2). revealSelector triggers the
+    // real hover path (there is no open/defaultOpen prop; both paths are purely event-driven).
+    name: "mosni-tooltip/open",
+    html: `<mosni-tooltip text="Helpful tip"><button type="button">Hover me</button></mosni-tooltip>`,
+    element: (
+      <Tooltip text="Helpful tip">
+        <button type="button">Hover me</button>
+      </Tooltip>
+    ),
+    classHtml: null,
+    classGap:
+      "the tip's position is computed at runtime from the anchor's and tip's measured rects (positionTooltip, D-R8); a hand-typed position cannot be derived without running the same JS",
+    subjectSelector: ".tooltip",
+    revealSelector: "button",
   },
 ];

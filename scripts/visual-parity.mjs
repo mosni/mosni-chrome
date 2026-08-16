@@ -53,20 +53,34 @@ async function assertBuilt() {
 // `element` and never needs a real React runtime.
 async function loadCaseMetadata() {
   const { visualCases } = await bundleAndImport(fixturesEntry);
-  return visualCases.map(({ name, html, classHtml, classGap, widths }) => {
-    if (classHtml === null && !classGap) {
-      throw new Error(
-        `${name}: classHtml is null but no classGap reason was given`,
-      );
-    }
-    return {
+  return visualCases.map(
+    ({
       name,
       html,
       classHtml,
       classGap,
-      widths: widths ?? DEFAULT_WIDTHS,
-    };
-  });
+      widths,
+      subjectSelector,
+      revealSelector,
+      revealEvent,
+    }) => {
+      if (classHtml === null && !classGap) {
+        throw new Error(
+          `${name}: classHtml is null but no classGap reason was given`,
+        );
+      }
+      return {
+        name,
+        html,
+        classHtml,
+        classGap,
+        widths: widths ?? DEFAULT_WIDTHS,
+        subjectSelector,
+        revealSelector,
+        revealEvent,
+      };
+    },
+  );
 }
 
 // Path C is mounted as a REAL live createRoot() render, not renderToStaticMarkup output — a
@@ -127,7 +141,17 @@ function firstTagName(html) {
 // differently (sub-pixel font hinting depends on fractional screen position), which is real
 // rendering noise, not a component difference. Only one is screenshotted at a time, so the visual
 // overlap is harmless.
-function renderHarnessPage(kase, width) {
+//
+// `onlyPath` (a|b|c) restricts the page to a SINGLE path's markup/mount — required for
+// `subjectSelector` fixtures (Modal, Tooltip): both the custom element and React portal their real
+// content to document.body rather than leaving it inside #path-a/#path-c, so with all three paths
+// on one page there would be no reliable way to tell which portaled dialog/tip belongs to which
+// path. One path per navigation sidesteps that entirely — there is only ever one portal target on
+// the page.
+function renderHarnessPage(kase, width, onlyPath) {
+  const showA = !onlyPath || onlyPath === "a";
+  const showB = (!onlyPath || onlyPath === "b") && kase.classHtml !== null;
+  const showC = !onlyPath || onlyPath === "c";
   return `<!doctype html>
 <html><head><meta charset="utf-8">
 <style>
@@ -137,11 +161,11 @@ html,body{margin:0;padding:0;background:#282828;}
 </style>
 <script src="/mosnicat.js"></script>
 </head><body>
-<div id="path-a">${kase.html}</div>
-${kase.classHtml !== null ? `<div id="path-b">${kase.classHtml}</div>` : ""}
-<div id="path-c"></div>
+${showA ? `<div id="path-a">${kase.html}</div>` : ""}
+${showB ? `<div id="path-b">${kase.classHtml}</div>` : ""}
+${showC ? `<div id="path-c"></div>` : ""}
 <script src="/.visual-fixtures-bundle.js"></script>
-<script>window.__mosniVisualHarness.mount(${JSON.stringify(kase.name)}, document.getElementById("path-c"));</script>
+${showC ? `<script>window.__mosniVisualHarness.mount(${JSON.stringify(kase.name)}, document.getElementById("path-c"));</script>` : ""}
 </body></html>`;
 }
 
@@ -161,12 +185,13 @@ const CONTENT_TYPES = {
 
 async function startServer(cases) {
   const server = createServer(async (req, res) => {
-    const m = req.url.match(/^\/__visual\/(\d+)\/(\d+)$/);
+    const m = req.url.match(/^\/__visual\/(\d+)\/(\d+)(?:\/([abc]))?$/);
     if (m) {
       const kase = cases[Number(m[1])];
       const width = Number(m[2]);
+      const onlyPath = m[3];
       res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-      res.end(renderHarnessPage(kase, width));
+      res.end(renderHarnessPage(kase, width, onlyPath));
       return;
     }
     // Static file serving from dist/, defaulting to index.html — mirrors the shape of `http-server`
@@ -349,6 +374,170 @@ async function runFixtureAtWidth(page, baseUrl, kase, index, width) {
   }
 }
 
+// Portal fixtures (Modal, Tooltip) render their real subject on document.body, not inside
+// #path-a/#path-b/#path-c — see the header comment on renderHarnessPage's `onlyPath` for why this
+// needs a separate navigation per path rather than sharing one page. `revealSelector`/`revealEvent`
+// (default none / "mouseenter") support the Tooltip case, whose tip only appears after a real
+// hover/focus event on its anchor — there is no open/defaultOpen prop for something purely
+// event-driven, on either path.
+async function screenshotPortalSubject(
+  page,
+  baseUrl,
+  kase,
+  index,
+  width,
+  onlyPath,
+) {
+  const url = `${baseUrl}/__visual/${index}/${width}/${onlyPath}`;
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+
+  if (onlyPath !== "b") {
+    const tag = onlyPath === "a" ? firstTagName(kase.html) : null;
+    if (tag) await page.evaluate((t) => customElements.whenDefined(t), tag);
+  }
+  await page.waitForLoadState("networkidle");
+
+  if (kase.revealSelector) {
+    const containerId =
+      onlyPath === "b" ? "path-b" : onlyPath === "c" ? "path-c" : "path-a";
+    // A real Playwright hover (a genuine simulated mouse move via CDP), not a manually dispatched
+    // "mouseenter" — React does not listen for the native mouseenter/mouseleave events at all (it
+    // derives enter/leave semantics from mouseover/mouseout at its root listener, same reason it
+    // has no bubbling phase of its own to piggyback on), so a synthetic MouseEvent("mouseenter")
+    // reached the custom-element path's direct listener but never reached React's onMouseEnter.
+    // hover() works uniformly for both.
+    await page
+      .locator(`#${containerId} ${kase.revealSelector}`)
+      .hover({ trial: false });
+    // The show is scheduled via setTimeout(0) on both paths (tooltip.ts's SHOW_DELAY_MS and
+    // Tooltip.tsx's matching scheduleShow) — a real macrotask, not a microtask, so this waits for
+    // the subject to actually exist and be unhidden rather than a fixed delay.
+    await page.waitForFunction((sel) => {
+      const el = document.querySelector(sel);
+      return !!el && !el.hidden;
+    }, kase.subjectSelector);
+  } else {
+    // Modal/Lightbox: `open`/`defaultOpen` on the React side calls showModal() from a useEffect,
+    // which commits asynchronously after mount — waitForLoadState("networkidle") alone can resolve
+    // before that effect has actually run, so the dialog isn't visible yet. Waiting for the
+    // subject explicitly closes that race for path C without slowing paths A/B, where it resolves
+    // immediately (already open by the time the DOM exists).
+    if (kase.subjectSelector) {
+      await page
+        .locator(kase.subjectSelector)
+        .first()
+        .waitFor({ state: "visible" });
+    }
+  }
+
+  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(
+    () =>
+      new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
+  );
+
+  const subject = page.locator(kase.subjectSelector).first();
+  return subject.screenshot();
+}
+
+async function runPortalFixtureAtWidth(
+  browserOrContext,
+  baseUrl,
+  kase,
+  index,
+  width,
+  newContext,
+) {
+  const bufA = await (async () => {
+    const context = await newContext();
+    const page = await context.newPage();
+    try {
+      return await screenshotPortalSubject(
+        page,
+        baseUrl,
+        kase,
+        index,
+        width,
+        "a",
+      );
+    } finally {
+      await context.close();
+    }
+  })();
+  const bufC = await (async () => {
+    const context = await newContext();
+    const page = await context.newPage();
+    try {
+      return await screenshotPortalSubject(
+        page,
+        baseUrl,
+        kase,
+        index,
+        width,
+        "c",
+      );
+    } finally {
+      await context.close();
+    }
+  })();
+
+  const context = await newContext();
+  const page = await context.newPage();
+  try {
+    const resultAC = await comparePixels(page, bufA, bufC);
+    if (!resultAC.equal) {
+      const base = await writeDiffArtifacts(
+        kase.name,
+        width,
+        "react",
+        bufA,
+        bufC,
+        resultAC,
+      );
+      fail(
+        `${kase.name} @ ${width}px: element vs React differ (${resultAC.reason ?? `${resultAC.diffCount} px`}) — see dist/visual-diff/${base}-{a,b,diff}.png`,
+      );
+    }
+
+    if (kase.classHtml !== null) {
+      const bufB = await (async () => {
+        const c2 = await newContext();
+        const p2 = await c2.newPage();
+        try {
+          return await screenshotPortalSubject(
+            p2,
+            baseUrl,
+            kase,
+            index,
+            width,
+            "b",
+          );
+        } finally {
+          await c2.close();
+        }
+      })();
+      const resultAB = await comparePixels(page, bufA, bufB);
+      if (!resultAB.equal) {
+        const base = await writeDiffArtifacts(
+          kase.name,
+          width,
+          "class",
+          bufA,
+          bufB,
+          resultAB,
+        );
+        fail(
+          `${kase.name} @ ${width}px: element vs class differ (${resultAB.reason ?? `${resultAB.diffCount} px`}) — see dist/visual-diff/${base}-{a,b,diff}.png`,
+        );
+      }
+    } else {
+      classGaps.push(`${kase.name}: ${kase.classGap}`);
+    }
+  } finally {
+    await context.close();
+  }
+}
+
 async function main() {
   await assertBuilt();
   const cases = await loadCaseMetadata();
@@ -371,12 +560,29 @@ async function main() {
     for (let i = 0; i < cases.length; i++) {
       const kase = cases[i];
       for (const width of kase.widths) {
-        const context = await browser.newContext({
-          viewport: { width, height: 2000 },
-          deviceScaleFactor: 1,
-          colorScheme: "dark",
-          reducedMotion: "reduce",
-        });
+        const newContext = () =>
+          browser.newContext({
+            viewport: { width, height: 2000 },
+            deviceScaleFactor: 1,
+            colorScheme: "dark",
+            reducedMotion: "reduce",
+          });
+        if (kase.subjectSelector) {
+          try {
+            await runPortalFixtureAtWidth(
+              browser,
+              baseUrl,
+              kase,
+              i,
+              width,
+              newContext,
+            );
+          } catch (err) {
+            fail(`${kase.name} @ ${width}px: ${err.message}`);
+          }
+          continue;
+        }
+        const context = await newContext();
         const page = await context.newPage();
         try {
           await runFixtureAtWidth(page, baseUrl, kase, i, width);

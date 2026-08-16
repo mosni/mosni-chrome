@@ -4,9 +4,13 @@ import { readFile, readdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { build } from "esbuild";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { bundleAndImport, cleanupScratch } from "./lib/bundle-and-import.mjs";
 
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const examplesDir = path.join(rootDir, "docs/examples");
+const reactExamplesDir = path.join(examplesDir, "react");
 
 function escapeHtml(source) {
   return source
@@ -36,6 +40,45 @@ async function loadComponentMeta() {
     "data:text/javascript;base64," + Buffer.from(code).toString("base64")
   );
   return mod.componentMeta;
+}
+
+// The section id IS the react example's filename (docs/examples/react/<id>.tsx) - "icons.html"'s
+// react example is react/icons.tsx even though its documented tag is mosni-icon, matching how the
+// section itself is keyed by filename, not by tag, everywhere else in this file.
+async function loadReactExampleIds() {
+  const entries = await readdir(reactExamplesDir).catch(() => []);
+  return new Set(
+    entries
+      .filter((f) => f.endsWith(".tsx"))
+      .map((f) => f.replace(/\.tsx$/, "")),
+  );
+}
+
+// Each docs/examples/react/<id>.tsx imports @mosni/react by a RELATIVE path into
+// packages/react/src (the same reason parity fixtures/behaviour cases do - a bare "@mosni/react"
+// specifier has no package.json/node_modules to resolve against from this repo, since the tarball
+// is D-R5's whole point). That import is real for BUNDLING but wrong to show a reader, who has an
+// actual @mosni/react dependency - so the DISPLAYED snippet rewrites it back to the public import a
+// real consumer would write, while bundleAndImport still resolves the real relative one.
+const REACT_PACKAGE_IMPORT_PATTERN =
+  /from ["']\.\.\/\.\.\/\.\.\/packages\/react\/src\/index["']/g;
+
+// Bundles and renders a docs/examples/react/<id>.tsx file exactly the way scripts/parity.mjs
+// renders fixtures.tsx - real esbuild bundling (react/react-dom external) + a real scratch file
+// (not the data: URL trick loadComponentMeta uses above, which only works because meta.ts imports
+// nothing - see bundle-and-import.mjs's own header comment), then renderToStaticMarkup on the
+// module's default export. The demo pane this produces is the React component's own real output,
+// not a hand-maintained stand-in that could drift from what <Component> actually renders.
+async function renderReactExample(id) {
+  const file = path.join(reactExamplesDir, `${id}.tsx`);
+  const rawSource = (await readFile(file, "utf8")).trimEnd();
+  const displaySource = rawSource.replace(
+    REACT_PACKAGE_IMPORT_PATTERN,
+    'from "@mosni/react"',
+  );
+  const mod = await bundleAndImport(file);
+  const html = renderToStaticMarkup(createElement(mod.default));
+  return { displaySource, html };
 }
 
 function renderAttributeTable(meta) {
@@ -154,27 +197,64 @@ const PAIRS = [
   },
 ];
 
-function renderPairedSection(pair, sourceById, componentMetaByTag) {
-  const meta = pair.tabs
+// The generalised version of the old renderPairedSection (react-plan.md §6.2): up to three tabs,
+// in the fixed order React, Component, Class (HTML) - React first (and so `selected`) when
+// present, since it's the tab most consumers of THIS docs page - written for a React app - want by
+// default. `htmlTabs` is exactly what PAIRS already provided (Component + Class(HTML) + any
+// extras); a React tab is prepended in front of it whenever a docs/examples/react/<anchorId>.tsx
+// example exists. Falls back to the original plain, tab-less `renderSection` when there would only
+// ever be one tab (no React example, and exactly one html tab) - the same "only one exists" case
+// §6.2 describes.
+async function renderGroupSection(
+  anchorId,
+  title,
+  note,
+  htmlTabs,
+  sourceById,
+  componentMetaByTag,
+  reactExampleIds,
+) {
+  const hasReactExample = reactExampleIds.has(anchorId);
+
+  if (!hasReactExample && htmlTabs.length === 1) {
+    return renderSection(
+      `${htmlTabs[0].id}.html`,
+      sourceById.get(htmlTabs[0].id),
+      componentMetaByTag,
+    );
+  }
+
+  const meta = htmlTabs
     .map((tab) => componentMetaByTag.get(tab.id))
     .find(Boolean);
   const metaTables = meta ? `\n${renderComponentMetaTables(meta)}` : "";
-  const note = pair.note ? `\n      <p>${pair.note}</p>` : "";
-  const tabPanels = pair.tabs
-    .map((tab, index) => {
-      const source = sourceById.get(tab.id);
-      return `        <mosni-tab label="${tab.label}"${index === 0 ? " selected" : ""}>
+  const noteHtml = note ? `\n      <p>${note}</p>` : "";
+
+  const panels = [];
+  if (hasReactExample) {
+    const { displaySource, html } = await renderReactExample(anchorId);
+    panels.push(`        <mosni-tab label="React" selected>
+          <div class="doc-example-demo" id="${anchorId}-react-demo">
+${html}
+          </div>
+          <mosni-code language="tsx"><pre>${escapeHtml(displaySource)}</pre></mosni-code>
+        </mosni-tab>`);
+  }
+  htmlTabs.forEach((tab, index) => {
+    const source = sourceById.get(tab.id);
+    const selected = !hasReactExample && index === 0;
+    panels.push(`        <mosni-tab label="${tab.label}"${selected ? " selected" : ""}>
           <div class="doc-example-demo">
 ${source}
           </div>
           <mosni-code language="html"><pre>${escapeHtml(source)}</pre></mosni-code>
-        </mosni-tab>`;
-    })
-    .join("\n");
-  return `    <section class="doc-example" id="${pair.tabs[0].id}">
-      <h2>${pair.title}</h2>${note}
+        </mosni-tab>`);
+  });
+
+  return `    <section class="doc-example" id="${anchorId}">
+      <h2>${title}</h2>${noteHtml}
       <mosni-tabs>
-${tabPanels}
+${panels.join("\n")}
       </mosni-tabs>${metaTables}
     </section>`;
 }
@@ -189,6 +269,12 @@ const COMPONENTS_INTRO = `    <section class="doc-example-intro">
       </p>
     </section>`;
 
+// docs/examples/react.html (§6.1): a peer of "Component"/"Class (HTML)" at the nav level, not a
+// component section - placed immediately before the components intro, exactly like the plan
+// specifies, by pulling it out of the normal alphabetical filename loop below (its own filename
+// would otherwise sort well before any mosni-* file) and inserting it by hand at that point.
+const REACT_SECTION_ID = "react";
+
 export async function generateDocs({ distDir }) {
   const filenames = (await readdir(examplesDir))
     .filter((f) => f.endsWith(".html"))
@@ -196,6 +282,7 @@ export async function generateDocs({ distDir }) {
 
   const componentMeta = await loadComponentMeta();
   const componentMetaByTag = new Map(componentMeta.map((m) => [m.tag, m]));
+  const reactExampleIds = await loadReactExampleIds();
 
   const sourceById = new Map();
   for (const filename of filenames) {
@@ -217,7 +304,17 @@ export async function generateDocs({ distDir }) {
 
   for (const filename of filenames) {
     const id = filename.replace(/\.html$/, "");
+    if (id === REACT_SECTION_ID) continue; // handled below, right before the components intro
+
     if (!insertedComponentsIntro && id.startsWith("mosni-")) {
+      navItems.push({ id: REACT_SECTION_ID, title: "React" });
+      sections.push(
+        renderSection(
+          `${REACT_SECTION_ID}.html`,
+          sourceById.get(REACT_SECTION_ID),
+          componentMetaByTag,
+        ),
+      );
       sections.push(COMPONENTS_INTRO);
       insertedComponentsIntro = true;
     }
@@ -227,7 +324,15 @@ export async function generateDocs({ distDir }) {
       if (pair) {
         navItems.push({ id, title: pair.title });
         sections.push(
-          renderPairedSection(pair, sourceById, componentMetaByTag),
+          await renderGroupSection(
+            id,
+            pair.title,
+            pair.note,
+            pair.tabs,
+            sourceById,
+            componentMetaByTag,
+            reactExampleIds,
+          ),
         );
       }
       continue;
@@ -235,9 +340,19 @@ export async function generateDocs({ distDir }) {
 
     navItems.push({ id, title: titleFromFilename(filename) });
     sections.push(
-      renderSection(filename, sourceById.get(id), componentMetaByTag),
+      await renderGroupSection(
+        id,
+        titleFromFilename(filename),
+        undefined,
+        [{ id, label: "Component" }],
+        sourceById,
+        componentMetaByTag,
+        reactExampleIds,
+      ),
     );
   }
+
+  await cleanupScratch();
 
   const navItemsHtml = navItems
     .map(

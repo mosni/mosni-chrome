@@ -79,10 +79,14 @@ class equivalent render pixel-identically.
 | `<mosni-accordion>`                  | A flat divided list of native `<details>` sections.                                | `mosni-accordion details`/`summary` scope |
 | `<mosni-tabs>` + `<mosni-tab>`       | The tablist controller and one authored tab (pair — tab is the child of tabs).     | `.tabs`                                   |
 
-**Two authoring paths, both first-class forever (D-17).** Every component has a hand-written class
-equivalent (`<header class="header">`, `<div class="panel">`, …) that renders identically. Reach for the
-component tag for attribute-driven terseness; reach for the plain HTML/class form for full control or the
-strongest no-JS story. Neither path is deprecated or secondary, and this is not expected to change.
+**Three authoring paths, all first-class forever (D-17, extended by the React plan's D-R1).** Every
+component has a hand-written class equivalent (`<header class="header">`, `<div class="panel">`, …)
+that renders identically, and — for React apps — a native React component (`<Header>`, `<Panel>`,
+…, see "React path" below) that renders that same DOM directly, with no custom element involved.
+Reach for the component tag for attribute-driven terseness; reach for the plain HTML/class form for
+full control or the strongest no-JS story; reach for `@mosni/react` in a React app to avoid the
+light-DOM child-ownership conflicts a custom element has with React's own reconciler. None of the
+three is deprecated or secondary, and this is not expected to change.
 
 **API conventions** (see the live examples + attribute/slot/event tables on the docs page, generated from
 `src/js/components/meta.ts`):
@@ -112,7 +116,76 @@ strongest no-JS story. Neither path is deprecated or secondary, and this is not 
 `mosni-menu-item:not(:defined)` and `mosni-toast:not(:defined)` — never a blanket `mosni-*` rule, so it only
 ever hides content-less generated chrome, never authored content. Content-bearing (enhance-role) components
 degrade to their readable authored content with JS off; generate-role components have the **class-only
-path as their no-JS fallback** (the same D-17 guarantee that makes the two authoring paths first-class).
+path as their no-JS fallback** (the same D-17 guarantee that makes all three authoring paths first-class).
+
+## React path
+
+For React apps, `@mosni/react` is the third first-class authoring path (D-17, D-R1): a native React
+component per tag, imported from `@mosni/react` and rendered directly — **not** a wrapper around the
+custom element. `<Panel>` renders `<div className="panel">…` itself; `<Tabs>` renders
+`.tabs`/`.tabs-bar`/`.tabs-panel` with React state. No custom element is involved, so there is no
+child-ownership conflict between it and React's reconciler (custom elements are autonomous and
+rebuild/relocate their own children; React assumes it owns the children it created — the two models
+fight when combined), no upgrade timing, no flash-of-unupgraded-content, and server rendering is
+correct on first paint. `scripts/parity.mjs` (in this repo) renders every component **both** ways
+with the same inputs and fails the build on any structural difference — the same "renders
+pixel-identically" promise the class path makes above is machine-checked for the React path too, not
+just asserted in prose.
+
+**Sanctioned exception:** `<LoginButton>` **does** render the real `<mosni-login-button>` element —
+it has a shadow root and takes no light-DOM children, so React and the element never contend. This
+exception is about light-DOM child ownership specifically; it does not generalise to any other tag.
+
+**Styling still comes from the CDN bootstrap.** `@mosni/react` ships **zero CSS**. Keep the usual
+`<script src="https://mosni.dev/mosnicat.js"></script>` bootstrap tag for CSS/fonts/favicon/viewport/
+cat — a theme or colour change still lands on every app with no redeploy, exactly as it does for the
+other two authoring paths.
+
+**Accepted cost: markup is version-locked at the consumer's build time.** A React consumer's
+component _markup_ updates only when it bumps the `@mosni/react` package version; CSS still updates
+live from the bootstrap. This is not a regression particular to React — the hand-written class path
+above has exactly the same property (its markup is whatever a consumer typed, frozen until they edit
+it); only the custom-element path picks up markup changes with no redeploy at all, because the
+browser fetches a fresh `mosnicat-core.js` on every page load.
+
+**Adoption is incremental, in two independent steps.** Step 1 costs a consumer one import and
+changes no runtime behaviour at all:
+
+```ts
+import "@mosni/react/elements";
+```
+
+This adds `JSX.IntrinsicElements` declarations for every `<mosni-*>` tag (generated from
+`src/js/components/meta.ts`), so existing `<mosni-*>` markup in a React/TSX codebase type-checks
+with zero behavioural change — deleting any hand-maintained `declare module "react" { namespace JSX
+{ … } }` block doing the same job. Step 2 is per component and optional: replace `<mosni-x>` with
+the matching `<X>` from `@mosni/react` wherever the light-DOM ownership conflict actually bites.
+
+| React export                  | Renders                                 | Notes                                                                           |
+| ----------------------------- | --------------------------------------- | ------------------------------------------------------------------------------- |
+| `Layout`                      | `div.layout`                            | Burger button + menu-open state via `useState`                                  |
+| `Header`                      | `header.header`                         | Logo + brand in one lockup inside the brand link                                |
+| `Menu` / `MenuItem`           | `nav.menu` / `a.menu-entry`             | `MenuItem` renders `<a>` when `href` is given, else `<div>`                     |
+| `Panel`                       | `div.panel`                             | `heading` prop only injects an `<h1>` when no `<h1>` child is authored          |
+| `Footer`                      | `footer.footer`                         |                                                                                 |
+| `Field`                       | `div.field`                             | `children` overrides the generated control (enhance-first, like the class path) |
+| `Switch`                      | `label.switch`                          | Controlled (`checked`) or uncontrolled (`defaultChecked`)                       |
+| `Slider`                      | `div.slider`                            | Controlled (`value`) or uncontrolled (`defaultValue`); an index, not a value    |
+| `Chips`                       | `div.chips`                             | Renders real checkboxes directly — nothing to "enhance" in React                |
+| `Modal`                       | `dialog.modal` (portal)                 | Portals to `document.body`; SSR renders only its non-portalled content, if any  |
+| `Tooltip`                     | anchor + portal `div.tooltip`           | Portals to `document.body`; same SSR note as `Modal`                            |
+| `Dropdown` / `DropdownItem`   | `div.dropdown` / `button.dropdown-item` | Escape/outside-click/arrow-key handling re-expressed in hook idiom              |
+| `Tabs` / `Tab`                | `div.tabs` / (data-only)                | `Tab` is never rendered on its own — `Tabs` reads its props directly            |
+| `Accordion` / `AccordionItem` | `div.accordion` / `details`             | `exclusive` shares one generated `name` across every child's `<details>`        |
+| `Lightbox`                    | `img.lightbox-thumb` + portal           | The overlay is built lazily on click — no SSR portal problem                    |
+| `Code`                        | `div.code`                              | Text renders synchronously; only Prism highlighting is a lazy effect            |
+| `Icon`                        | `span` (classless)                      | Lazy public icon chunk; SSR renders the empty span                              |
+| `Logo`                        | `span.mosni-logo`                       |                                                                                 |
+| `Toast` / `useToast`          | nothing (`null`)                        | Delegates to the existing global `window.mosni.toast` — no second toast host    |
+| `LoginButton`                 | `mosni-login-button`                    | The sanctioned exception above                                                  |
+
+See `packages/react/README.md` for install instructions and the tarball URL, and the docs page's
+**React** section/tab on every component for a live, rendered example plus the verbatim snippet.
 
 ## Design language
 
@@ -149,3 +222,8 @@ The chrome is the shared `main`; each app's views are consumers. The flow:
 - `public/mosnicat.css` — base theme + the primitives above.
 - `public/cat.js` — the eye-tracking cat behavior (expects `img#cat-image`, which the bootstrap appends first).
 - `public/mosnicat.png` — the cat.
+- `packages/react/` — `@mosni/react`, the React authoring path above. See `packages/react/README.md`
+  for install/use and `react-plan.md` for the design that produced it (kept around as a durable
+  record of the decisions, not something a consumer needs to read).
+- `docs/react-migration-files.md` — the ready-to-run recipe for migrating `mosni/files` onto this
+  path, planned but not executed from this repo.

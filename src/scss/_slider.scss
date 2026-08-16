@@ -11,6 +11,7 @@ mosni-slider {
   flex-direction: column;
   gap: 0.4rem;
   width: 100%;
+  max-width: 100%; /* D-R11 twin of the mosni-slider host rule */
 }
 
 .slider-label {

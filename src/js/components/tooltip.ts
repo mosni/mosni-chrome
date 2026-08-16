@@ -1,7 +1,7 @@
 import { MosniElement, define, takeSlot } from "../base-element";
+import { positionTooltip } from "../shared/position-tooltip";
 
 const SHOW_DELAY_MS = 0;
-const EDGE_OFFSET_PX = 6;
 
 let nextId = 0;
 
@@ -143,17 +143,10 @@ class MosniTooltip extends MosniElement {
     const anchorRect = anchor.getBoundingClientRect();
     const tipRect = tip.getBoundingClientRect();
 
-    let top = anchorRect.top - tipRect.height - EDGE_OFFSET_PX;
-    if (top < EDGE_OFFSET_PX) {
-      top = anchorRect.bottom + EDGE_OFFSET_PX;
-    }
-
-    let left = anchorRect.left + (anchorRect.width - tipRect.width) / 2;
-    const maxLeft = window.innerWidth - tipRect.width - EDGE_OFFSET_PX;
-    left = Math.min(
-      Math.max(left, EDGE_OFFSET_PX),
-      Math.max(EDGE_OFFSET_PX, maxLeft),
-    );
+    const { top, left } = positionTooltip(anchorRect, tipRect, {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
 
     tip.style.top = `${top}px`;
     tip.style.left = `${left}px`;

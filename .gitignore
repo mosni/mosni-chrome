@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.tmp-verify/
 .claude/
 agent-docs/
 CLAUDE.md

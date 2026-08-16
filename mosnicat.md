@@ -86,7 +86,14 @@ that renders identically, and — for React apps — a native React component (`
 Reach for the component tag for attribute-driven terseness; reach for the plain HTML/class form for
 full control or the strongest no-JS story; reach for `@mosni/react` in a React app to avoid the
 light-DOM child-ownership conflicts a custom element has with React's own reconciler. None of the
-three is deprecated or secondary, and this is not expected to change.
+three is deprecated or secondary, and this is not expected to change. **"Renders identically" is a
+promise with a named enforcer, not just prose:** `scripts/parity.mjs` checks DOM structure in jsdom
+on every `npm run verify`, and `scripts/visual-parity.mjs` (`npm run test:visual`) renders every
+fixture through all three paths in a real browser and fails on any pixel difference. A handful of
+gaps are honestly declared rather than silently smoothed over — a runtime-computed tooltip/dropdown
+position, `showModal()`'s native top-layer semantics, and the two components with no bare-classes
+equivalent at all (icons, Prism highlighting) — each with a written reason in
+`packages/react/parity/visual-fixtures.tsx`.
 
 **API conventions** (see the live examples + attribute/slot/event tables on the docs page, generated from
 `src/js/components/meta.ts`):

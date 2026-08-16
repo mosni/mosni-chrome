@@ -27,7 +27,18 @@ class MosniHeader extends MosniElement {
     link.append(lockup);
     this.append(link);
 
-    if (mid.length) {
+    // `mid.length` alone is wrong here: nicely-indented markup puts a whitespace-only text node
+    // between `<mosni-header>`'s opening tag and its first named-slot child (e.g. `<span
+    // slot="tagline">`), and takeDefault() picks that up like any other unslotted child. That used
+    // to create an empty `.header-mid` — a real flex item that ate an extra `gap` on each side and
+    // narrowed `.little-link`'s shrink room, unlike <Header>'s React twin, which only renders
+    // `.header-mid` when real `children` are passed (React JSX has no such incidental whitespace).
+    const hasMidContent = mid.some(
+      (node) =>
+        node.nodeType === Node.ELEMENT_NODE ||
+        (node.textContent ?? "").trim() !== "",
+    );
+    if (hasMidContent) {
       const midDiv = document.createElement("div");
       midDiv.className = "header-mid";
       midDiv.append(...mid);
